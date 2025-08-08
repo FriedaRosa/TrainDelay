@@ -463,3 +463,38 @@ train_id,train_station,line,first_station,last_station,planned_departure,actual_
 33263,Spich,S12,Hennef(Sieg),Köln Hansaring,2025-08-08 20:26:00,2025-08-08 20:26:00,0,0
 33262,Spich,S12,Horrem,Au(Sieg),2025-08-08 20:50:00,2025-08-08 20:51:00,1,1
 32037,Spich,S19,Au(Sieg),Köln Hbf,2025-08-08 20:35:00,2025-08-08 20:35:00,0,0
+33263,Köln Hbf,S12,Hennef(Sieg),Köln Hansaring,2025-08-08 20:50:00,2025-08-08 20:52:00,2,1
+31639,Köln Hbf,S6,Köln-Worringen,Düsseldorf Hbf,2025-08-08 20:37:00,2025-08-08 20:41:00,4,1
+33262,Köln Hbf,S12,Horrem,Au(Sieg),2025-08-08 20:31:00,2025-08-08 20:36:00,5,1
+31626,Köln Hbf,S6,Düsseldorf Hbf,Köln-Nippes,2025-08-08 20:44:00,2025-08-08 20:45:00,1,1
+28531,Köln Hbf,RE5,Oberhausen Hbf,Koblenz Hbf,2025-08-08 20:32:00,2025-08-08 20:34:00,2,1
+33140,Köln Hbf,S11,Düsseldorf Flughafen Terminal,Bergisch Gladbach,2025-08-08 20:27:00,2025-08-08 20:39:00,12,1
+19,Köln Hbf,ICE,Bruxelles Midi,Frankfurt(Main)Hbf,2025-08-08 20:37:00,2025-08-08 21:09:00,32,1
+10578,Köln Hbf,RB25,Köln Hansaring,Lüdenscheid-Brügge,2025-08-08 20:24:00,2025-08-08 20:33:00,9,1
+10282,Köln Hbf,RB38,Köln Messe/Deutz,Bedburg(Erft),2025-08-08 20:29:00,2025-08-08 20:32:00,3,1
+28532,Köln Hbf,RE5,Koblenz Hbf,Düsseldorf Hbf,2025-08-08 20:31:00,2025-08-08 20:32:00,1,1
+33261,Köln Hbf,S12,Au(Sieg),Köln-Müngersdorf Technologiepark,2025-08-08 20:30:00,2025-08-08 20:30:00,0,0
+33143,Köln Hbf,S11,Bergisch Gladbach,Dormagen,2025-08-08 20:54:00,2025-08-08 20:56:00,2,1
+26830,Köln Hbf,RE1,Hamm(Westf)Hbf,Aachen Hbf,2025-08-08 20:15:00,2025-08-08 20:29:00,14,1
+32032,Köln Hbf,S19,Sindorf,Hennef(Sieg),2025-08-08 20:21:00,2025-08-08 20:29:00,8,1
+10279,Köln Hbf,RB38,Bedburg(Erft),Köln Messe/Deutz,2025-08-08 20:30:00,2025-08-08 20:28:00,-2,0
+17366,Köln Hbf,RB48,Bonn-Mehlem,Wuppertal-Oberbarmen,2025-08-08 20:25:00,2025-08-08 20:28:00,3,1
+32035,Köln Hbf,S19,Hennef(Sieg),Düren,2025-08-08 20:40:00,2025-08-08 20:47:00,7,1
+89737,Köln Hbf,RE6,Köln/Bonn Flughafen,Minden(Westf),2025-08-08 20:07:00,2025-08-08 20:15:00,8,1
+205,Köln Hbf,ICE,Hamburg-Altona,Basel SBB,2025-08-08 20:55:00,2025-08-08 21:11:00,16,1
+17432,Köln Hbf,RE7,Krefeld Hbf,Hagen Hbf,2025-08-08 20:21:00,2025-08-08 20:23:00,2,1
+10059,Köln Hbf,RE22,Köln Messe/Deutz,Euskirchen,2025-08-08 20:21:00,2025-08-08 20:23:00,2,1
+31637,Köln Hbf,S6,Köln-Worringen,Langenfeld(Rhld),2025-08-08 20:17:00,2025-08-08 20:22:00,5,1
+32033,Köln Hbf,S19,Blankenberg(Sieg),Sindorf,2025-08-08 20:20:00,2025-08-08 20:22:00,2,1
+10580,Köln Hbf,RB25,Köln Hansaring,Gummersbach,2025-08-08 20:54:00,2025-08-08 20:54:00,0,0
+33137,Köln Hbf,S11,Bergisch Gladbach,Düsseldorf Flughafen Terminal,2025-08-08 20:14:00,2025-08-08 20:18:00,4,1
+33260,Köln Hbf,S12,Horrem,Blankenberg(Sieg),2025-08-08 20:11:00,2025-08-08 20:16:00,5,1
+25436,Köln Hbf,RB26,Mainz Hbf,Köln Messe/Deutz,2025-08-08 20:05:00,2025-08-08 20:16:00,11,1
+33259,Köln Hbf,S12,Hennef(Sieg),Horrem,2025-08-08 20:10:00,2025-08-08 20:14:00,4,1
+32028,Köln Hbf,S19,Düren,Au(Sieg),2025-08-08 20:01:00,2025-08-08 20:13:00,12,1
+32037,Spich,S19,Au(Sieg),Köln Hbf,2025-08-08 20:35:00,2025-08-08 20:37:00,2,1
+32028,Spich,S19,Düren,Au(Sieg),2025-08-08 20:24:00,2025-08-08 20:37:00,13,1
+32032,Spich,S19,Sindorf,Hennef(Sieg),2025-08-08 20:44:00,2025-08-08 20:51:00,7,1
+33262,Spich,S12,Horrem,Au(Sieg),2025-08-08 20:50:00,2025-08-08 20:54:00,4,1
+33263,Spich,S12,Hennef(Sieg),Köln Hansaring,2025-08-08 20:26:00,2025-08-08 20:29:00,3,1
+32035,Spich,S19,Hennef(Sieg),Düren,2025-08-08 20:15:00,2025-08-08 20:23:00,8,1
