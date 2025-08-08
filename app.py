@@ -136,13 +136,14 @@ def server(input, output, session):
             return fig
 
         df = df[df["delayed"] == 1]
-        df["date"] = df["planned_departure"].dt.date
-        summary = df.groupby("date")["delay_minutes"].sum().reset_index()
+        # Create an hourly timestamp
+        df["hour"] = df["planned_departure"].dt.floor("H")  # Round down to hour
+        summary = df.groupby("hour")["delay_minutes"].sum().reset_index()
 
         fig, ax = plt.subplots()
-        ax.plot(summary["date"], summary["delay_minutes"], marker='o')
-        ax.set_title("Total Delay Minutes Over Time")
-        ax.set_xlabel("Date")
+        ax.plot(summary["hour"], summary["delay_minutes"], marker='o')
+        ax.set_title("Total Delay Minutes Per Hour")
+        ax.set_xlabel("Hour")
         ax.set_ylabel("Total Delay Minutes")
         fig.autofmt_xdate()
         return fig
