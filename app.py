@@ -137,7 +137,7 @@ def server(input, output, session):
 
         df = df[df["delayed"] == 1]
         # Create an hourly timestamp
-        df["hour"] = df["planned_departure"].dt.floor("H")  # Round down to hour
+        df["hour"] = df["planned_departure"].dt.floor("h")  # Round down to hour
         summary = df.groupby("hour")["delay_minutes"].sum().reset_index()
 
         fig, ax = plt.subplots()
