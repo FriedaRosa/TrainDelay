@@ -15,7 +15,6 @@ database_config = DatabaseConfig(os.getenv("DB_HOST"), os.getenv("DB_USER"), os.
 train_delay_tracker = TrainDelayTracker(auth_data, database_config)
 
 train_delay_tracker.track_station("Köln Hbf")
-train_delay_tracker.track_station("Spich")
 
 # on your local machine
 connection = mysql.connector.connect(
