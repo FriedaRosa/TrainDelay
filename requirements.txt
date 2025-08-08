@@ -1,0 +1,8 @@
+shiny
+pandas
+matplotlib
+plotly
+mysql-connector-python
+python-dotenv
+SQLAlchemy
+pymysql
