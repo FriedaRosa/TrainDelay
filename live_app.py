@@ -135,12 +135,16 @@ def fetch_station_df(station_name: str) -> pd.DataFrame:
             line = f"{train_type}{train_line}".strip()
             train_id = getattr(t, "train_number", None)
 
+            # --- Route parsing: always derive origin/destination from full route ---
             stations_str = (getattr(t, "stations", "") or "")
-            first_station = getattr(t, "passed_stations", None)
-            if not first_station:
-                first_station = stations_str.split("|")[0] if stations_str else ""
-            last_station = stations_str.split("|")[-1] if stations_str else ""
+            parts = [p.strip() for p in stations_str.split("|") if p and str(p).strip()]
+            origin = parts[0] if parts else ""
+            destination = parts[-1] if parts else ""
+
+            first_station = origin            # <-- consistent origin
+            last_station = destination
             line_last = f"{line} {last_station}".strip()
+
 
             changes = getattr(t, "train_changes", None)
 
@@ -415,10 +419,14 @@ def server(input, output, session):
             df = df[df["line_last"] == sel_line_last]
 
         # Keep only upcoming trains in your configured TZ
+        # Keep only upcoming trains in your configured TZ
         if "planned_departure" in df.columns:
             now_local = pd.Timestamp.now(tz=TARGET_TZ)
-            df = df[df["planned_departure"].notna() & (df["planned_departure"] >= now_local)]
-
+            # show both past (within window) and future:
+            cutoff = now_local - pd.Timedelta(hours=WINDOW_HOURS) if WINDOW_HOURS > 0 else None
+            if cutoff is not None:
+                df = df[df["planned_departure"].notna() & (df["planned_departure"] >= cutoff)]
+         # else: no table trimming
         return df
 
     # Keep Line choices synced
@@ -521,7 +529,7 @@ def server(input, output, session):
             return f"Error: {df.loc[0,'error']}"
         ts = df["request_time"].max() if "request_time" in df.columns else pd.Timestamp.now(tz=TARGET_TZ)
         ts = ensure_in_tz(ts, TARGET_TZ)
-        return ts.strftime(f"%Y-%m-%d %H:%M:%S {TARGET_TZ}")
+        return ts.strftime(f"%Y-%m-%d %H:%M")
 
     @render.data_frame
     def table():
@@ -543,9 +551,10 @@ def server(input, output, session):
             if c in d.columns:
                 d[c] = ensure_in_tz(d[c], TARGET_TZ)
                 d[c] = pd.to_datetime(d[c], errors="coerce")
-                d[c] = d[c].dt.tz_convert(TARGET_TZ).dt.strftime(f"%Y-%m-%d %H:%M:%S {TARGET_TZ}")
+                d[c] = d[c].dt.tz_convert(TARGET_TZ).dt.strftime(f"%Y-%m-%d %H:%M")
 
-        return d.sort_values(["planned_departure", "line_last", "train_id"])
+        return d.sort_values(["planned_departure", "line_last", "train_id"], ascending=[False, True, True])
+
 
     @render.download(filename=lambda: f"{_slugify(input.station() or 'station')}.csv")
     def download_csv():
