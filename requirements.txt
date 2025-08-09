@@ -7,3 +7,13 @@ python-dotenv
 SQLAlchemy
 pymysql
 Jinja2
+annotations
+os
+time
+datetime
+dotenv
+deutsche_bahn_api
+shinywidgets
+plotly
+pathlib
+io
