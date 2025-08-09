@@ -149,6 +149,10 @@ app_ui = ui.page_fluid(
         ),
     ),
     ui.row(
+        ui.column(12, ui.output_text("refresh_debug"))
+    ),
+
+    ui.row(
         ui.column(
             12,
             ui.download_button("download_csv", "Save & Download CSV (append if exists)"),
@@ -179,6 +183,11 @@ def server(input, output, session):
     last_error = reactive.Value("")
     fetching = reactive.Value(False)          # lock to prevent overlap
     last_fetch_monotonic = reactive.Value(0)  # seconds from time.monotonic()
+    
+    # Track refresh clicks for debugging
+    refresh_clicks = reactive.Value(0)
+    last_manual_msg = reactive.Value("")  # message to show in UI
+
 
     # --- tuning knobs ---
     WINDOW_HOURS = 12
@@ -260,7 +269,6 @@ def server(input, output, session):
     def _auto_fetch():
         if not input.auto():
             return
-        # schedule next check; even if effect fires earlier, _do_fetch_and_merge will throttle
         interval_ms = max(int(input.secs()), MIN_REFRESH_SEC) * 1000
         reactive.invalidate_later(interval_ms)
         st = input.station().strip()
@@ -268,14 +276,27 @@ def server(input, output, session):
             return
         _do_fetch_and_merge(st, force=False)  # obey hard throttle
 
+
     # -------- MANUAL mode: fetch only when button is clicked (no throttle) --------
     @reactive.effect
     @reactive.event(input.refresh)
     def _manual_fetch():
+        # Count the click and surface a message in UI
+        refresh_clicks.set(refresh_clicks() + 1)
+
         st = input.station().strip()
         if not st:
+            last_manual_msg.set("Manual refresh clicked, but station is empty.")
             return
-        _do_fetch_and_merge(st, force=True)  # manual overrides throttle
+
+        # Nuke throttle so manual is never blocked
+        if 'last_fetch_monotonic' in locals():
+            last_fetch_monotonic.set(0)
+
+        print("[manual] refresh clicked; fetching now…")
+        last_manual_msg.set(f"Manual refresh #{refresh_clicks()} at {pd.Timestamp.now().strftime('%H:%M:%S')}")
+        _do_fetch_and_merge(st, force=True)  # force bypasses throttle
+
 
     # Current view = history filtered to station
     @reactive.calc
@@ -445,6 +466,15 @@ def server(input, output, session):
         buf = io.StringIO()
         merged.to_csv(buf, index=False)
         yield buf.getvalue()
+
+
+    @render.text
+    def refresh_debug():
+        msg = last_manual_msg()
+        return msg or "Click 'Refresh now' to fetch immediately."
+
+
+
 
     # ---- Plotly charts (run on history) ----
     @render_plotly
