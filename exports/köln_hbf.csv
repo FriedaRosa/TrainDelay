@@ -1,55 +1,111 @@
 request_time,line,last_station,line_last,train_id,first_station,planned_departure,current_departure,track,message,train_station,is_delayed,delayed_minutes
 2025-08-09 19:03:53.335574+02:00,S19,Düren,S19 Düren,32021,Au(Sieg),2025-08-09 19:00:00+02:00,2025-08-09 19:04:00+02:00,11 B-C,No message,Köln Hbf,1,4
+2025-08-09 19:14:29.945395+02:00,S19,Düren,S19 Düren,32021,Au(Sieg),2025-08-09 19:00:00+02:00,2025-08-09 19:13:00+02:00,11 B-C,No message,Köln Hbf,1,13
 2025-08-09 19:03:53.335574+02:00,S19,Au(Sieg),S19 Au(Sieg),32020,Düren,2025-08-09 19:01:00+02:00,2025-08-09 19:06:00+02:00,10 A-B,No message,Köln Hbf,1,5
+2025-08-09 19:14:29.945395+02:00,S19,Au(Sieg),S19 Au(Sieg),32020,Düren,2025-08-09 19:01:00+02:00,2025-08-09 19:06:00+02:00,10 A-B,No message,Köln Hbf,1,5
 2025-08-09 19:03:53.335574+02:00,RE8,Troisdorf,RE8 Troisdorf,33755,Rommerskirchen,2025-08-09 19:03:00+02:00,2025-08-09 19:03:00+02:00,3 D-G,keine Verspätungsbegründung,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RE8,Troisdorf,RE8 Troisdorf,33755,Rommerskirchen,2025-08-09 19:03:00+02:00,2025-08-09 19:03:00+02:00,3 D-G,keine Verspätungsbegründung,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,RB26,Köln Messe/Deutz,RB26 Köln Messe/Deutz,25434,Mainz Hbf,2025-08-09 19:05:00+02:00,2025-08-09 19:18:00+02:00,1,Verspätung eines vorausfahrenden Zuges Verspätung eines vorausfahrenden Zuges,Köln Hbf,1,13
+2025-08-09 19:14:29.945395+02:00,RB26,Köln Messe/Deutz,RB26 Köln Messe/Deutz,25434,Mainz Hbf,2025-08-09 19:05:00+02:00,2025-08-09 19:19:00+02:00,1,Verspätung eines vorausfahrenden Zuges Verspätung eines vorausfahrenden Zuges,Köln Hbf,1,14
 2025-08-09 19:03:53.335574+02:00,RE12,Euskirchen,RE12 Euskirchen,4187,Köln Messe/Deutz,2025-08-09 19:05:00+02:00,2025-08-09 19:05:00+02:00,6 D-G,keine Verspätungsbegründung,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RE12,Euskirchen,RE12 Euskirchen,4187,Köln Messe/Deutz,2025-08-09 19:05:00+02:00,2025-08-09 19:05:00+02:00,6 D-G,keine Verspätungsbegründung,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,RB25,Köln Hansaring,RB25 Köln Hansaring,10567,Engelskirchen,2025-08-09 19:07:00+02:00,2025-08-09 19:08:00+02:00,11 B-C,No message,Köln Hbf,1,1
+2025-08-09 19:14:29.945395+02:00,RB25,Köln Hansaring,RB25 Köln Hansaring,10567,Engelskirchen,2025-08-09 19:07:00+02:00,2025-08-09 19:15:00+02:00,11 B-C,No message,Köln Hbf,1,8
 2025-08-09 19:03:53.335574+02:00,RE6,Minden(Westf),RE6 Minden(Westf),89735,Köln/Bonn Flughafen,2025-08-09 19:07:00+02:00,2025-08-09 19:07:00+02:00,9 D-G,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RE6,Minden(Westf),RE6 Minden(Westf),89735,Köln/Bonn Flughafen,2025-08-09 19:07:00+02:00,2025-08-09 19:07:00+02:00,9 D-G,No message,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,S11,Bergisch Gladbach,S11 Bergisch Gladbach,33128,Dormagen,2025-08-09 19:07:00+02:00,2025-08-09 19:11:00+02:00,10 A-B,technische Störung an einem anderen Zug technische Störung an einem anderen Zug,Köln Hbf,1,4
+2025-08-09 19:14:29.945395+02:00,S11,Bergisch Gladbach,S11 Bergisch Gladbach,33128,Dormagen,2025-08-09 19:07:00+02:00,2025-08-09 19:11:00+02:00,10 A-B,technische Störung an einem anderen Zug technische Störung an einem anderen Zug,Köln Hbf,1,4
 2025-08-09 19:03:53.335574+02:00,S12,Köln-Ehrenfeld,S12 Köln-Ehrenfeld,33293,Troisdorf,2025-08-09 19:10:00+02:00,2025-08-09 19:11:00+02:00,11 B-C,No message,Köln Hbf,1,1
+2025-08-09 19:14:29.945395+02:00,S12,Köln-Ehrenfeld,S12 Köln-Ehrenfeld,33293,Troisdorf,2025-08-09 19:10:00+02:00,2025-08-09 19:17:00+02:00,11 B-C,No message,Köln Hbf,1,7
 2025-08-09 19:03:53.335574+02:00,ICE,Hamburg-Altona,ICE Hamburg-Altona,104,Basel SBB,2025-08-09 19:11:00+02:00,2025-08-09 19:13:00+02:00,5,Verspätung im Ausland Verspätung im Ausland keine Verspätungsbegründung,Köln Hbf,1,2
+2025-08-09 19:14:29.945395+02:00,ICE,Hamburg-Altona,ICE Hamburg-Altona,104,Basel SBB,2025-08-09 19:11:00+02:00,2025-08-09 19:17:00+02:00,5,Verspätung im Ausland Verspätung im Ausland keine Verspätungsbegründung,Köln Hbf,1,6
 2025-08-09 19:03:53.335574+02:00,S12,Hennef(Sieg),S12 Hennef(Sieg),33250,Köln-Ehrenfeld,2025-08-09 19:11:00+02:00,2025-08-09 19:11:00+02:00,10 A-B,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,S12,Hennef(Sieg),S12 Hennef(Sieg),33250,Köln-Ehrenfeld,2025-08-09 19:11:00+02:00,2025-08-09 19:12:00+02:00,10 A-B,No message,Köln Hbf,1,1
 2025-08-09 19:03:53.335574+02:00,EC,Dortmund Hbf,EC Dortmund Hbf,6,Interlaken Ost,2025-08-09 19:12:00+02:00,2025-08-09 19:43:00+02:00,4,Verspätung im Ausland keine Verspätungsbegründung Verspätung im Ausland keine Verspätungsbegründung,Köln Hbf,1,31
+2025-08-09 19:14:29.945395+02:00,EC,Dortmund Hbf,EC Dortmund Hbf,6,Interlaken Ost,2025-08-09 19:12:00+02:00,2025-08-09 19:43:00+02:00,4,Verspätung im Ausland keine Verspätungsbegründung Verspätung im Ausland keine Verspätungsbegründung,Köln Hbf,1,31
 2025-08-09 19:03:53.335574+02:00,S11,Düsseldorf Flughafen Terminal,S11 Düsseldorf Flughafen Terminal,33129,Bergisch Gladbach,2025-08-09 19:14:00+02:00,2025-08-09 19:15:00+02:00,11 B-C,technische Störung an einem anderen Zug technische Störung an einem anderen Zug,Köln Hbf,1,1
+2025-08-09 19:14:29.945395+02:00,S11,Düsseldorf Flughafen Terminal,S11 Düsseldorf Flughafen Terminal,33129,Bergisch Gladbach,2025-08-09 19:14:00+02:00,2025-08-09 19:21:00+02:00,11 B-C,technische Störung an einem anderen Zug technische Störung an einem anderen Zug,Köln Hbf,1,7
 2025-08-09 19:03:53.335574+02:00,RB24,Köln Messe/Deutz,RB24 Köln Messe/Deutz,10444,Euskirchen,2025-08-09 19:15:00+02:00,2025-08-09 19:15:00+02:00,1,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RB24,Köln Messe/Deutz,RB24 Köln Messe/Deutz,10444,Euskirchen,2025-08-09 19:15:00+02:00,2025-08-09 19:15:00+02:00,1,No message,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,RE1,Aachen Hbf,RE1 Aachen Hbf,26828,Hamm(Westf)Hbf,2025-08-09 19:15:00+02:00,2025-08-09 19:37:00+02:00,9 D-G,No message,Köln Hbf,1,22
+2025-08-09 19:14:29.945395+02:00,RE1,Aachen Hbf,RE1 Aachen Hbf,26828,Hamm(Westf)Hbf,2025-08-09 19:15:00+02:00,2025-08-09 19:39:00+02:00,9 D-G,No message,Köln Hbf,1,24
 2025-08-09 19:03:53.335574+02:00,ICE,Berlin Ostbahnhof,ICE Berlin Ostbahnhof,957,Wuppertal Hbf,2025-08-09 19:20:00+02:00,2025-08-09 19:20:00+02:00,2,keine Verspätungsbegründung keine Verspätungsbegründung keine Verspätungsbegründung keine Verspätungsbegründung keine Verspätungsbegründung,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,ICE,Berlin Ostbahnhof,ICE Berlin Ostbahnhof,957,Wuppertal Hbf,2025-08-09 19:20:00+02:00,2025-08-09 19:20:00+02:00,2,keine Verspätungsbegründung keine Verspätungsbegründung keine Verspätungsbegründung keine Verspätungsbegründung keine Verspätungsbegründung,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,S19,Düren,S19 Düren,32025,Hennef(Sieg),2025-08-09 19:20:00+02:00,2025-08-09 19:21:00+02:00,11 B-C,No message,Köln Hbf,1,1
+2025-08-09 19:14:29.945395+02:00,S19,Düren,S19 Düren,32025,Hennef(Sieg),2025-08-09 19:20:00+02:00,2025-08-09 19:21:00+02:00,11 B-C,No message,Köln Hbf,1,1
 2025-08-09 19:03:53.335574+02:00,RE7,Münster(Westf)Hbf,RE7 Münster(Westf)Hbf,17430,Krefeld Hbf,2025-08-09 19:21:00+02:00,2025-08-09 19:21:00+02:00,2 A-C,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RE7,Münster(Westf)Hbf,RE7 Münster(Westf)Hbf,17430,Krefeld Hbf,2025-08-09 19:21:00+02:00,2025-08-09 19:35:00+02:00,2 A-C,No message,Köln Hbf,1,14
 2025-08-09 19:03:53.335574+02:00,S19,Hennef(Sieg),S19 Hennef(Sieg),32024,Düren,2025-08-09 19:21:00+02:00,2025-08-09 19:21:00+02:00,10 A-B,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,S19,Hennef(Sieg),S19 Hennef(Sieg),32024,Düren,2025-08-09 19:21:00+02:00,2025-08-09 19:21:00+02:00,10 A-B,No message,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,RE22,Euskirchen,RE22 Euskirchen,10057,Köln Messe/Deutz,2025-08-09 19:22:00+02:00,2025-08-09 19:22:00+02:00,8,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RE22,Euskirchen,RE22 Euskirchen,10057,Köln Messe/Deutz,2025-08-09 19:22:00+02:00,2025-08-09 19:22:00+02:00,8,No message,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,RE9,Siegen Hbf,RE9 Siegen Hbf,10927,Aachen Hbf,2025-08-09 19:23:00+02:00,2025-08-09 19:23:00+02:00,3 A-C,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RE9,Siegen Hbf,RE9 Siegen Hbf,10927,Aachen Hbf,2025-08-09 19:23:00+02:00,2025-08-09 19:23:00+02:00,3 A-C,No message,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,RB25,Lüdenscheid-Brügge,RB25 Lüdenscheid-Brügge,10574,Köln Hansaring,2025-08-09 19:24:00+02:00,2025-08-09 19:24:00+02:00,10 A-B,keine Verspätungsbegründung,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RB25,Lüdenscheid-Brügge,RB25 Lüdenscheid-Brügge,10574,Köln Hansaring,2025-08-09 19:24:00+02:00,2025-08-09 19:24:00+02:00,10 A-B,keine Verspätungsbegründung keine Verspätungsbegründung keine Verspätungsbegründung,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,RB27,Mönchengladbach Hbf,RB27 Mönchengladbach Hbf,33756,Troisdorf,2025-08-09 19:25:00+02:00,2025-08-09 19:26:00+02:00,7 D-G,No message,Köln Hbf,1,1
+2025-08-09 19:14:29.945395+02:00,RB27,Mönchengladbach Hbf,RB27 Mönchengladbach Hbf,33756,Troisdorf,2025-08-09 19:25:00+02:00,2025-08-09 19:26:00+02:00,7 D-G,No message,Köln Hbf,1,1
 2025-08-09 19:03:53.335574+02:00,S11,Bergisch Gladbach,S11 Bergisch Gladbach,33194,Düsseldorf Flughafen Terminal,2025-08-09 19:27:00+02:00,2025-08-09 19:28:00+02:00,10 A-B,technische Störung an einem anderen Zug technische Störung an einem anderen Zug technische Störung an einem anderen Zug technische Störung an einem anderen Zug,Köln Hbf,1,1
+2025-08-09 19:14:29.945395+02:00,S11,Bergisch Gladbach,S11 Bergisch Gladbach,33194,Düsseldorf Flughafen Terminal,2025-08-09 19:27:00+02:00,2025-08-09 19:28:00+02:00,10 A-B,technische Störung an einem anderen Zug technische Störung an einem anderen Zug technische Störung an einem anderen Zug technische Störung an einem anderen Zug,Köln Hbf,1,1
 2025-08-09 19:03:53.335574+02:00,ICE,Bruxelles Midi,ICE Bruxelles Midi,10,Aachen Hbf,2025-08-09 19:28:00+02:00,2025-08-09 19:28:00+02:00,5 D-G,keine Verspätungsbegründung keine Verspätungsbegründung,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,ICE,Frankfurt(Main)Hbf,ICE Frankfurt(Main)Hbf,159,Amsterdam Centraal,2025-08-09 19:28:00+02:00,2025-08-09 19:29:00+02:00,6,keine Verspätungsbegründung kein gastronomisches Angebot Verspätung eines vorausfahrenden Zuges keine Verspätungsbegründung kein gastronomisches Angebot Verspätung eines vorausfahrenden Zuges keine Verspätungsbegründung,Köln Hbf,1,1
+2025-08-09 19:14:29.945395+02:00,ICE,Bruxelles Midi,ICE Bruxelles Midi,10,Aachen Hbf,2025-08-09 19:28:00+02:00,2025-08-09 19:28:00+02:00,5 D-G,keine Verspätungsbegründung keine Verspätungsbegründung keine Verspätungsbegründung keine Verspätungsbegründung,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,ICE,Frankfurt(Main)Hbf,ICE Frankfurt(Main)Hbf,159,Amsterdam Centraal,2025-08-09 19:28:00+02:00,2025-08-09 19:30:00+02:00,6,keine Verspätungsbegründung kein gastronomisches Angebot Verspätung eines vorausfahrenden Zuges keine Verspätungsbegründung kein gastronomisches Angebot Verspätung eines vorausfahrenden Zuges keine Verspätungsbegründung,Köln Hbf,1,2
 2025-08-09 19:03:53.335574+02:00,RB38,Bedburg(Erft),RB38 Bedburg(Erft),10280,Köln Messe/Deutz,2025-08-09 19:29:00+02:00,2025-08-09 19:30:00+02:00,7 A-C,keine Verspätungsbegründung,Köln Hbf,1,1
+2025-08-09 19:14:29.945395+02:00,RB38,Bedburg(Erft),RB38 Bedburg(Erft),10280,Köln Messe/Deutz,2025-08-09 19:29:00+02:00,2025-08-09 19:30:00+02:00,7 A-C,keine Verspätungsbegründung,Köln Hbf,1,1
 2025-08-09 19:03:53.335574+02:00,S12,Köln-Ehrenfeld,S12 Köln-Ehrenfeld,33253,Au(Sieg),2025-08-09 19:30:00+02:00,2025-08-09 19:32:00+02:00,11 B-C,No message,Köln Hbf,1,2
+2025-08-09 19:14:29.945395+02:00,S12,Köln-Ehrenfeld,S12 Köln-Ehrenfeld,33253,Au(Sieg),2025-08-09 19:30:00+02:00,2025-08-09 19:35:00+02:00,11 B-C,No message,Köln Hbf,1,5
 2025-08-09 19:03:53.335574+02:00,RB38,Köln Messe/Deutz,RB38 Köln Messe/Deutz,10277,Bedburg(Erft),2025-08-09 19:31:00+02:00,2025-08-09 19:31:00+02:00,2 A-C,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RB38,Köln Messe/Deutz,RB38 Köln Messe/Deutz,10277,Bedburg(Erft),2025-08-09 19:31:00+02:00,2025-08-09 19:31:00+02:00,2 A-C,No message,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,RE5,Oberhausen Hbf,RE5 Oberhausen Hbf,28530,Koblenz Hbf,2025-08-09 19:31:00+02:00,2025-08-09 19:37:00+02:00,1 A-C,No message,Köln Hbf,1,6
+2025-08-09 19:14:29.945395+02:00,RE5,Oberhausen Hbf,RE5 Oberhausen Hbf,28530,Koblenz Hbf,2025-08-09 19:31:00+02:00,2025-08-09 19:38:00+02:00,1 A-C,No message,Köln Hbf,1,7
 2025-08-09 19:03:53.335574+02:00,S12,Au(Sieg),S12 Au(Sieg),33252,Köln-Ehrenfeld,2025-08-09 19:31:00+02:00,2025-08-09 19:31:00+02:00,10 A-B,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,S12,Au(Sieg),S12 Au(Sieg),33252,Köln-Ehrenfeld,2025-08-09 19:31:00+02:00,2025-08-09 19:32:00+02:00,10 A-B,No message,Köln Hbf,1,1
 2025-08-09 19:03:53.335574+02:00,ICE,Koblenz Hbf,ICE Koblenz Hbf,556,Berlin Ostbahnhof,2025-08-09 19:32:00+02:00,2025-08-09 19:53:00+02:00,5,Signalstörung Signalstörung,Köln Hbf,1,21
+2025-08-09 19:14:29.945395+02:00,ICE,Koblenz Hbf,ICE Koblenz Hbf,556,Berlin Ostbahnhof,2025-08-09 19:32:00+02:00,2025-08-09 19:56:00+02:00,5,Signalstörung Signalstörung,Köln Hbf,1,24
 2025-08-09 19:03:53.335574+02:00,RE5,Koblenz Hbf,RE5 Koblenz Hbf,28529,Oberhausen Hbf,2025-08-09 19:32:00+02:00,2025-08-09 19:33:00+02:00,9 D-G,No message,Köln Hbf,1,1
+2025-08-09 19:14:29.945395+02:00,RE5,Koblenz Hbf,RE5 Koblenz Hbf,28529,Oberhausen Hbf,2025-08-09 19:32:00+02:00,2025-08-09 19:32:00+02:00,9 D-G,No message,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,EST,Dortmund Hbf,EST Dortmund Hbf,9459,Paris Nord,2025-08-09 19:33:00+02:00,2025-08-09 19:36:00+02:00,4 A-C,keine Verspätungsbegründung keine Verspätungsbegründung,Köln Hbf,1,3
+2025-08-09 19:14:29.945395+02:00,EST,Dortmund Hbf,EST Dortmund Hbf,9459,Paris Nord,2025-08-09 19:33:00+02:00,2025-08-09 19:38:00+02:00,4 A-C,keine Verspätungsbegründung keine Verspätungsbegründung,Köln Hbf,1,5
 2025-08-09 19:03:53.335574+02:00,S11,Düsseldorf Flughafen Terminal,S11 Düsseldorf Flughafen Terminal,33131,Bergisch Gladbach,2025-08-09 19:34:00+02:00,2025-08-09 19:35:00+02:00,11 B-C,No message,Köln Hbf,1,1
+2025-08-09 19:14:29.945395+02:00,S11,Düsseldorf Flughafen Terminal,S11 Düsseldorf Flughafen Terminal,33131,Bergisch Gladbach,2025-08-09 19:34:00+02:00,2025-08-09 19:36:00+02:00,11 B-C,No message,Köln Hbf,1,2
 2025-08-09 19:03:53.335574+02:00,RB25,Köln Hansaring,RB25 Köln Hansaring,10569,Lüdenscheid-Brügge,2025-08-09 19:37:00+02:00,2025-08-09 19:39:00+02:00,11 B-C,No message,Köln Hbf,1,2
+2025-08-09 19:14:29.945395+02:00,RB25,Köln Hansaring,RB25 Köln Hansaring,10569,Lüdenscheid-Brügge,2025-08-09 19:37:00+02:00,2025-08-09 19:41:00+02:00,11 B-C,No message,Köln Hbf,1,4
 2025-08-09 19:03:53.335574+02:00,RB27,Troisdorf,RB27 Troisdorf,33757,Mönchengladbach Hbf,2025-08-09 19:38:00+02:00,2025-08-09 19:41:00+02:00,4,Signalstörung Weichenstörung Signalstörung Weichenstörung,Köln Hbf,1,3
+2025-08-09 19:14:29.945395+02:00,RB27,Troisdorf,RB27 Troisdorf,33757,Mönchengladbach Hbf,2025-08-09 19:38:00+02:00,2025-08-09 19:41:00+02:00,4,Signalstörung Weichenstörung Signalstörung Weichenstörung,Köln Hbf,1,3
 2025-08-09 19:03:53.335574+02:00,S19,Sindorf,S19 Sindorf,32027,Hennef(Sieg),2025-08-09 19:40:00+02:00,2025-08-09 19:41:00+02:00,11 B-C,Verspätung eines vorausfahrenden Zuges Verspätung eines vorausfahrenden Zuges Verspätung eines vorausfahrenden Zuges Verspätung eines vorausfahrenden Zuges,Köln Hbf,1,1
+2025-08-09 19:14:29.945395+02:00,S19,Sindorf,S19 Sindorf,32027,Hennef(Sieg),2025-08-09 19:40:00+02:00,2025-08-09 19:41:00+02:00,11 B-C,Verspätung eines vorausfahrenden Zuges Verspätung eines vorausfahrenden Zuges Verspätung eines vorausfahrenden Zuges Verspätung eines vorausfahrenden Zuges,Köln Hbf,1,1
 2025-08-09 19:03:53.335574+02:00,S19,Hennef(Sieg),S19 Hennef(Sieg),32026,Sindorf,2025-08-09 19:41:00+02:00,2025-08-09 19:41:00+02:00,10 A-B,technische Störung am Zug technische Störung am Zug,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,S19,Hennef(Sieg),S19 Hennef(Sieg),32026,Sindorf,2025-08-09 19:41:00+02:00,2025-08-09 19:41:00+02:00,10 A-B,technische Störung am Zug technische Störung am Zug technische Störung am Zug technische Störung am Zug,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,RE22,Köln Messe/Deutz,RE22 Köln Messe/Deutz,10048,Euskirchen,2025-08-09 19:43:00+02:00,2025-08-09 19:43:00+02:00,1,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RE22,Köln Messe/Deutz,RE22 Köln Messe/Deutz,10048,Euskirchen,2025-08-09 19:43:00+02:00,2025-08-09 19:43:00+02:00,1,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RB24,Euskirchen,RB24 Euskirchen,10447,Köln Messe/Deutz,2025-08-09 19:46:00+02:00,2025-08-09 19:46:00+02:00,6,keine Verspätungsbegründung,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,RE9,Aachen Hbf,RE9 Aachen Hbf,10928,Siegen Hbf,2025-08-09 19:47:00+02:00,2025-08-09 19:47:00+02:00,8,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RE9,Aachen Hbf,RE9 Aachen Hbf,10928,Siegen Hbf,2025-08-09 19:47:00+02:00,2025-08-09 19:47:00+02:00,8,keine Verspätungsbegründung,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,S11,Bergisch Gladbach,S11 Bergisch Gladbach,33134,Düsseldorf Flughafen Terminal,2025-08-09 19:47:00+02:00,2025-08-09 20:09:00+02:00,10 A-B,technische Störung an einem anderen Zug technische Störung an einem anderen Zug,Köln Hbf,1,22
+2025-08-09 19:14:29.945395+02:00,S11,Bergisch Gladbach,S11 Bergisch Gladbach,33134,Düsseldorf Flughafen Terminal,2025-08-09 19:47:00+02:00,2025-08-09 20:08:00+02:00,10 A-B,technische Störung an einem anderen Zug technische Störung an einem anderen Zug,Köln Hbf,1,21
 2025-08-09 19:03:53.335574+02:00,RE1,Hamm(Westf)Hbf,RE1 Hamm(Westf)Hbf,26833,Aachen Hbf,2025-08-09 19:49:00+02:00,2025-08-09 19:49:00+02:00,4 A-C,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RE1,Hamm(Westf)Hbf,RE1 Hamm(Westf)Hbf,26833,Aachen Hbf,2025-08-09 19:49:00+02:00,2025-08-09 19:54:00+02:00,4 A-C,No message,Köln Hbf,1,5
 2025-08-09 19:03:53.335574+02:00,S12,Köln-Ehrenfeld,S12 Köln-Ehrenfeld,33295,Hennef(Sieg),2025-08-09 19:50:00+02:00,2025-08-09 19:51:00+02:00,11 B-C,No message,Köln Hbf,1,1
+2025-08-09 19:14:29.945395+02:00,S12,Köln-Ehrenfeld,S12 Köln-Ehrenfeld,33295,Hennef(Sieg),2025-08-09 19:50:00+02:00,2025-08-09 19:51:00+02:00,11 B-C,No message,Köln Hbf,1,1
 2025-08-09 19:03:53.335574+02:00,RB48,Wuppertal-Oberbarmen,RB48 Wuppertal-Oberbarmen,17364,Köln Messe/Deutz,2025-08-09 19:52:00+02:00,2025-08-09 19:52:00+02:00,1,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RB48,Wuppertal-Oberbarmen,RB48 Wuppertal-Oberbarmen,17364,Köln Messe/Deutz,2025-08-09 19:52:00+02:00,2025-08-09 19:52:00+02:00,1,No message,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,RE6,Köln/Bonn Flughafen,RE6 Köln/Bonn Flughafen,89730,Minden(Westf),2025-08-09 19:52:00+02:00,2025-08-09 19:53:00+02:00,4 D-G,No message,Köln Hbf,1,1
+2025-08-09 19:14:29.945395+02:00,RE6,Köln/Bonn Flughafen,RE6 Köln/Bonn Flughafen,89730,Minden(Westf),2025-08-09 19:52:00+02:00,2025-08-09 19:52:00+02:00,4 D-G,No message,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,ICE,Nürnberg Hbf,ICE Nürnberg Hbf,1021,Hamburg-Altona,2025-08-09 19:53:00+02:00,2025-08-09 19:56:00+02:00,7,keine Verspätungsbegründung keine Verspätungsbegründung,Köln Hbf,1,3
+2025-08-09 19:14:29.945395+02:00,ICE,Nürnberg Hbf,ICE Nürnberg Hbf,1021,Hamburg-Altona,2025-08-09 19:53:00+02:00,2025-08-09 19:55:00+02:00,7,keine Verspätungsbegründung keine Verspätungsbegründung keine Verspätungsbegründung,Köln Hbf,1,2
 2025-08-09 19:03:53.335574+02:00,RB25,Engelskirchen,RB25 Engelskirchen,10576,Köln Hansaring,2025-08-09 19:54:00+02:00,,10 A-B,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RB25,Engelskirchen,RB25 Engelskirchen,10576,Köln Hansaring,2025-08-09 19:54:00+02:00,,10 A-B,keine Verspätungsbegründung,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,S11,Dormagen,S11 Dormagen,33135,Bergisch Gladbach,2025-08-09 19:54:00+02:00,2025-08-09 19:56:00+02:00,11 B-C,No message,Köln Hbf,1,2
 2025-08-09 19:03:53.335574+02:00,ICE,München Hbf,ICE München Hbf,615,Hamburg-Altona,2025-08-09 19:55:00+02:00,2025-08-09 20:07:00+02:00,5,technische Störung an der Strecke technische Störung an der Strecke keine Verspätungsbegründung,Köln Hbf,1,12
+2025-08-09 19:14:29.945395+02:00,ICE,München Hbf,ICE München Hbf,615,Hamburg-Altona,2025-08-09 19:55:00+02:00,2025-08-09 20:10:00+02:00,5,technische Störung an der Strecke technische Störung an der Strecke keine Verspätungsbegründung,Köln Hbf,1,15
 2025-08-09 19:03:53.335574+02:00,RB26,Bingen(Rhein) Hbf,RB26 Bingen(Rhein) Hbf,25439,Köln Messe/Deutz,2025-08-09 19:56:00+02:00,2025-08-09 19:56:00+02:00,9 D-G,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RB26,Bingen(Rhein) Hbf,RB26 Bingen(Rhein) Hbf,25439,Köln Messe/Deutz,2025-08-09 19:56:00+02:00,2025-08-09 19:56:00+02:00,9 D-G,keine Verspätungsbegründung,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,RE7,Krefeld Hbf,RE7 Krefeld Hbf,17429,Rheine,2025-08-09 19:56:00+02:00,,9 D-G,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RE7,Krefeld Hbf,RE7 Krefeld Hbf,17429,Rheine,2025-08-09 19:56:00+02:00,,9 D-G,No message,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,RE12,Köln Messe/Deutz,RE12 Köln Messe/Deutz,4186,Euskirchen,2025-08-09 19:57:00+02:00,2025-08-09 19:57:00+02:00,1,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RE12,Köln Messe/Deutz,RE12 Köln Messe/Deutz,4186,Euskirchen,2025-08-09 19:57:00+02:00,2025-08-09 19:57:00+02:00,1,No message,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,RE8,Rommerskirchen,RE8 Rommerskirchen,33758,Troisdorf,2025-08-09 19:59:00+02:00,2025-08-09 19:59:00+02:00,8,No message,Köln Hbf,0,0
+2025-08-09 19:14:29.945395+02:00,RE8,Rommerskirchen,RE8 Rommerskirchen,33758,Troisdorf,2025-08-09 19:59:00+02:00,2025-08-09 19:59:00+02:00,8,No message,Köln Hbf,0,0
 2025-08-09 19:03:53.335574+02:00,S19,Düren,S19 Düren,32029,Au(Sieg),2025-08-09 20:00:00+02:00,2025-08-09 20:01:00+02:00,11 B-C,No message,Köln Hbf,1,1
+2025-08-09 19:14:29.945395+02:00,S19,Düren,S19 Düren,32029,Au(Sieg),2025-08-09 20:00:00+02:00,2025-08-09 20:01:00+02:00,11 B-C,No message,Köln Hbf,1,1

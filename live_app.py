@@ -189,6 +189,7 @@ app_ui = ui.page_fluid(
             4,
             ui.input_text("station", "Station", value="Köln Hbf", placeholder="Type a station"),
             ui.input_select("line", "Line", choices=["All"], selected="All"),
+            ui.input_select("line_last", "Destination (line_last)", choices=["All"], selected="All"),
             ui.input_switch("auto", "Auto-refresh", value=True),
             ui.input_slider("secs", "Refresh every (seconds)", min=180, max=2000, value=300, step=10),
             ui.input_action_button("refresh", "Refresh now"),
@@ -353,13 +354,21 @@ def server(input, output, session):
     @reactive.calc
     def filtered():
         df = data()
-        sel = input.line()
+        sel_line = input.line()
+        sel_line_last = input.line_last()
+
         if df.empty or "error" in df.columns:
             return df
 
-        if sel and sel != "All" and "line" in df.columns:
-            df = df[df["line"] == sel]
+        # First filter by "line" (unless All)
+        if sel_line and sel_line != "All" and "line" in df.columns:
+            df = df[df["line"] == sel_line]
 
+        # Then optionally filter by "line_last" within that line (unless All)
+        if sel_line_last and sel_line_last != "All" and "line_last" in df.columns:
+            df = df[df["line_last"] == sel_line_last]
+
+        # Keep only upcoming trains in your configured TZ
         if "planned_departure" in df.columns:
             now_local = pd.Timestamp.now(tz=TARGET_TZ)
             df = df[df["planned_departure"].notna() & (df["planned_departure"] >= now_local)]
@@ -370,17 +379,40 @@ def server(input, output, session):
     @reactive.effect
     def _update_line_choices():
         df = data()
+
+        # --- Build choices for "line"
         if df.empty or "line" not in df.columns or "error" in df.columns:
-            new_choices = ("All",)
+            line_choices = ("All",)
         else:
             lines = sorted([x for x in df["line"].dropna().unique().tolist() if str(x).strip()])
-            new_choices = tuple(["All"] + lines)
+            line_choices = tuple(["All"] + lines)
 
-        if new_choices != _line_choices_cache():
-            _line_choices_cache.set(new_choices)
-            current = input.line()
-            selected = current if current in new_choices else "All"
-            ui.update_select("line", choices=list(new_choices), selected=selected)
+        # Preserve current selection if still valid
+        current_line = input.line()
+        selected_line = current_line if current_line in line_choices else "All"
+        if line_choices != _line_choices_cache():
+            _line_choices_cache.set(line_choices)
+        ui.update_select("line", choices=list(line_choices), selected=selected_line)
+
+        # --- Build choices for "line_last" (depends on selected line)
+        if df.empty or "line_last" not in df.columns or "error" in df.columns:
+            line_last_choices = ("All",)
+        else:
+            # Restrict line_last options to the selected "line" (unless "All")
+            if selected_line != "All" and "line" in df.columns:
+                df_for_line = df[df["line"] == selected_line]
+            else:
+                df_for_line = df
+
+            line_lasts = sorted(
+                [x for x in df_for_line["line_last"].dropna().unique().tolist() if str(x).strip()]
+            )
+            line_last_choices = tuple(["All"] + line_lasts)
+
+        current_line_last = input.line_last()
+        selected_line_last = current_line_last if current_line_last in line_last_choices else "All"
+        ui.update_select("line_last", choices=list(line_last_choices), selected=selected_line_last)
+
 
     # Autoload CSV history for station
     last_loaded_station = reactive.Value("")
@@ -554,22 +586,31 @@ def server(input, output, session):
 
     @render_plotly
     def line_delay_plot():
-        df = data()
+        # Use the line + line_last filtered view
+        df = filtered()
         if df.empty or "is_delayed" not in df.columns:
-            return empty_fig("Delayed Trains by Line")
+            return empty_fig("Delayed Trains by Destination (line_last)")
+
         d = df[df["is_delayed"] == 1].copy()
         if d.empty:
-            return empty_fig("Delayed Trains by Line", "No delayed trains in view")
+            return empty_fig("Delayed Trains by Destination (line_last)", "No delayed trains in view")
+
+        group_key = "line_last" if "line_last" in d.columns else "line"
         counts = (
-            d.groupby("line", dropna=False, observed=False)
+            d.groupby(group_key, dropna=False, observed=False)
              .size()
              .reset_index(name="delay_count")
              .sort_values("delay_count", ascending=False)
         )
-        fig = px.bar(counts, x="delay_count", y="line", orientation="h", title="Delayed Trains by Line")
-        fig.update_layout(xaxis_title="Number of Delays", yaxis_title="", bargap=0.2, margin=dict(l=10, r=10, t=60, b=10))
+
+        ylab = "Destination (line_last)" if group_key == "line_last" else "Line"
+        title = "Delayed Trains by Destination (line_last)" if group_key == "line_last" else "Delayed Trains by Line"
+
+        fig = px.bar(counts, x="delay_count", y=group_key, orientation="h", title=title)
+        fig.update_layout(xaxis_title="Number of Delays", yaxis_title=ylab, bargap=0.2, margin=dict(l=10, r=10, t=60, b=10))
         fig.update_yaxes(autorange="reversed")
         return fig
+
 
     @render_plotly
     def delay_timeline_plot():
