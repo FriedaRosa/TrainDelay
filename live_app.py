@@ -68,6 +68,7 @@ def fetch_station_df(station_name: str) -> pd.DataFrame:
             current_departure = getattr(t.train_changes, "departure", None)
             track = t.platform
 
+            # join messages
             msg_parts = []
             for m in t.train_changes.messages:
                 msg = getattr(m, "message", None)
@@ -95,6 +96,7 @@ def fetch_station_df(station_name: str) -> pd.DataFrame:
             )
         return pd.DataFrame(rows)
     except Exception as e:
+        print("[fetch_station_df] ERROR:", e)
         return pd.DataFrame({"error": [str(e)]})
 
 def empty_fig(title: str, message: str = "No data for selected filters") -> go.Figure:
@@ -110,14 +112,15 @@ def empty_fig(title: str, message: str = "No data for selected filters") -> go.F
 
 # ---------- UI ----------
 app_ui = ui.page_fluid(
-    ui.h3("Live Deutsche Bahn delays (Shiny for Python)"),
+    ui.h3("🚆 Live Deutsche Bahn delays"),
     ui.row(
         ui.column(
             4,
             ui.input_text("station", "Station", value="Köln Hbf", placeholder="Type a station"),
-            ui.input_select("line", "Line", choices=["All"], selected="All"),  # <-- Line dropdown
+            ui.input_select("line", "Line", choices=["All"], selected="All"),
             ui.input_switch("auto", "Auto-refresh", value=True),
-            ui.input_slider("secs", "Refresh every (seconds)", min=100, max=2000, value=300, step=5),
+            # hard minimum visually = 180 seconds (3 minutes)
+            ui.input_slider("secs", "Refresh every (seconds)", min=180, max=2000, value=300, step=10),
             ui.input_action_button("refresh", "Refresh now"),
         ),
         ui.column(
@@ -140,45 +143,131 @@ app_ui = ui.page_fluid(
         ui.column(4, ui.card(ui.card_header("Delay Minutes per Hour"), output_widget("delay_timeline_plot"))),
     ),
     ui.hr(),
-    ui.p(
-        "Tip: Reduce refresh frequency to respect API rate limits. "
-        "This demo pulls the current hour only; continuous refresh builds a transient 'live' view."
+    ui.card(
+        ui.card_header("Debug"),
+        ui.row(
+            ui.column(4, ui.output_text("dbg_fetch")),
+            ui.column(4, ui.output_text("dbg_history")),
+            ui.column(4, ui.output_text("dbg_error")),
+        ),
     ),
 )
 
 # ---------- Server ----------
 def server(input, output, session):
-    # reactive ticker
-    @reactive.calc
-    def tick():
-        if input.auto():
-            reactive.invalidate_later(int(input.secs()) * 1000)
-        _ = input.refresh()
-        return time.time()
+    # --- state ---
+    history = reactive.Value(pd.DataFrame())
+    _line_choices_cache = reactive.Value(("All",))
+    last_error = reactive.Value("")
+    fetching = reactive.Value(False)          # lock to prevent overlap
+    last_fetch_monotonic = reactive.Value(0)  # seconds from time.monotonic()
 
-    @reactive.calc
-    def data():
-        _ = tick()
+    # --- tuning knobs ---
+    WINDOW_HOURS = 12
+    MAX_ROWS = 5000
+    DEDUPE_KEYS = ["train_station", "train_id", "planned_departure"]
+    MIN_REFRESH_SEC = 180  # hard floor = 3 minutes
+
+    # Shared fetch routine (force=True bypasses the throttle for manual refresh)
+    def _do_fetch_and_merge(station_name: str, *, force: bool = False):
+        now = time.monotonic()
+
+        # HARD THROTTLE: never fetch more often than MIN_REFRESH_SEC in AUTO mode
+        if not force:
+            elapsed = now - (last_fetch_monotonic() or 0)
+            if elapsed < MIN_REFRESH_SEC:
+                # Too soon since last fetch; skip silently (or log if you want)
+                # print(f"[history] skip: throttled ({elapsed:.1f}s since last)")
+                return
+
+        if fetching():
+            return  # another fetch is still running
+
+        fetching.set(True)
+        try:
+            df_new = fetch_station_df(station_name)
+            # record a fetch attempt time regardless of outcome (prevents hammering on errors)
+            last_fetch_monotonic.set(now)
+
+            if df_new.empty:
+                last_error.set("Fetch returned 0 rows")
+                print("[history] fetched 0 rows")
+                return
+
+            if "error" in df_new.columns:
+                err = str(df_new.loc[0, "error"])
+                last_error.set(err)
+                print("[history] fetch error:", err)
+                return
+
+            # Coerce only new batch
+            for col in ("planned_departure", "current_departure", "request_time"):
+                if col in df_new.columns:
+                    df_new[col] = pd.to_datetime(df_new[col], errors="coerce")
+            if "delayed_minutes" in df_new.columns:
+                df_new["delayed_minutes"] = pd.to_numeric(df_new["delayed_minutes"], errors="coerce")
+            if "line" in df_new.columns:
+                df_new["line"] = df_new["line"].astype("category")
+
+            print(f"[history] new rows: {len(df_new)}")
+
+            # Append to history
+            df = pd.concat([history(), df_new], ignore_index=True, copy=False)
+
+            # Time window cap (keep NaT rows too)
+            if "planned_departure" in df.columns:
+                cutoff = pd.Timestamp.now() - pd.Timedelta(hours=WINDOW_HOURS)
+                mask = df["planned_departure"].notna() & (df["planned_departure"] >= cutoff)
+                df = pd.concat([df[mask], df[df["planned_departure"].isna()]], ignore_index=True)
+
+            # Row cap
+            if "request_time" in df.columns and len(df) > MAX_ROWS:
+                df = df.nlargest(MAX_ROWS, "request_time")
+
+            # Fast dedupe: keep latest request per key
+            if "request_time" in df.columns and all(k in df.columns for k in DEDUPE_KEYS):
+                dedupe_keys = DEDUPE_KEYS
+                idx = df.groupby(dedupe_keys)["request_time"].idxmax()
+                df = df.loc[idx].sort_values(["planned_departure", "line", "train_id"], kind="stable")
+
+            history.set(df)
+            last_error.set("")
+            print(f"[history] total rows: {len(df)}")
+        finally:
+            fetching.set(False)
+
+    # -------- AUTO mode: periodic fetch only when auto is ON (hard limited) --------
+    @reactive.effect
+    def _auto_fetch():
+        if not input.auto():
+            return
+        # schedule next check; even if effect fires earlier, _do_fetch_and_merge will throttle
+        interval_ms = max(int(input.secs()), MIN_REFRESH_SEC) * 1000
+        reactive.invalidate_later(interval_ms)
         st = input.station().strip()
         if not st:
-            return pd.DataFrame()
-        return fetch_station_df(st)
-
-    # update line choices whenever fresh data arrives
-    @reactive.effect
-    def _update_line_choices():
-        df = data()
-        if df.empty or "line" not in df.columns or "error" in df.columns:
-            ui.update_select("line", choices=["All"], selected="All")
             return
-        lines = sorted([x for x in df["line"].dropna().unique().tolist() if str(x).strip()])
-        choices = ["All"] + lines
-        # keep current selection if still valid, else "All"
-        sel = input.line()
-        selected = sel if sel in choices else "All"
-        ui.update_select("line", choices=choices, selected=selected)
+        _do_fetch_and_merge(st, force=False)  # obey hard throttle
 
-    # filtered view by selected line
+    # -------- MANUAL mode: fetch only when button is clicked (no throttle) --------
+    @reactive.effect
+    @reactive.event(input.refresh)
+    def _manual_fetch():
+        st = input.station().strip()
+        if not st:
+            return
+        _do_fetch_and_merge(st, force=True)  # manual overrides throttle
+
+    # Current view = history filtered to station
+    @reactive.calc
+    def data():
+        df = history()
+        st = input.station().strip()
+        if df.empty or not st or "train_station" not in df.columns:
+            return df
+        return df[df["train_station"] == st]
+
+    # Line-filtered view
     @reactive.calc
     def filtered():
         df = data()
@@ -189,6 +278,23 @@ def server(input, output, session):
             return df[df["line"] == sel]
         return df
 
+    # Keep Line choices in sync with station view
+    @reactive.effect
+    def _update_line_choices():
+        df = data()
+        if df.empty or "line" not in df.columns or "error" in df.columns:
+            new_choices = ("All",)
+        else:
+            lines = sorted([x for x in df["line"].dropna().unique().tolist() if str(x).strip()])
+            new_choices = tuple(["All"] + lines)
+
+        if new_choices != _line_choices_cache():
+            _line_choices_cache.set(new_choices)
+            current = input.line()
+            selected = current if current in new_choices else "All"
+            ui.update_select("line", choices=list(new_choices), selected=selected)
+
+    # ---- Outputs ----
     @render.text
     def updated():
         df = data()
@@ -196,8 +302,8 @@ def server(input, output, session):
             return "No data (yet)."
         if "error" in df.columns:
             return f"Error: {df.loc[0,'error']}"
-        ts = df["request_time"].max()
-        return f"{ts.strftime('%Y-%m-%d %H:%M:%S')}"
+        ts = df["request_time"].max() if "request_time" in df.columns else pd.Timestamp.now()
+        return f"{pd.to_datetime(ts).strftime('%Y-%m-%d %H:%M:%S')}"
 
     @render.data_frame
     def table():
@@ -205,25 +311,16 @@ def server(input, output, session):
         if "error" in df.columns:
             return df
         cols = [
-            "request_time",
-            "line",
-            "train_id",
-            "first_station",
-            "last_station",
-            "planned_departure",
-            "current_departure",
-            "track",
-            "message",
-            "train_station",
-            "is_delayed",
-            "delayed_minutes",
+            "request_time", "line", "train_id", "first_station", "last_station",
+            "planned_departure", "current_departure", "track", "message",
+            "train_station", "is_delayed", "delayed_minutes",
         ]
         existing = [c for c in cols if c in df.columns]
         if not existing:
             return pd.DataFrame({"Message": ["No columns to display."]})
         return df[existing].sort_values(["planned_departure", "line", "train_id"])
 
-    # ---- Plotly charts (use filtered() so they respect the Line dropdown) ----
+    # ---- Plotly charts (run on history) ----
     @render_plotly
     def delay_plot():
         df = filtered()
@@ -239,7 +336,7 @@ def server(input, output, session):
 
     @render_plotly
     def line_delay_plot():
-        # For this chart we want all lines (ignoring the line filter), but for the current station/hour
+        # ignore line filter; show all lines for the selected station's history
         df = data()
         if df.empty or "is_delayed" not in df.columns:
             return empty_fig("Delayed Trains by Line")
@@ -247,7 +344,7 @@ def server(input, output, session):
         if d.empty:
             return empty_fig("Delayed Trains by Line", "No delayed trains in view")
         counts = (
-            d.groupby("line", dropna=False)
+            d.groupby("line", dropna=False, observed=False)
              .size()
              .reset_index(name="delay_count")
              .sort_values("delay_count", ascending=False)
@@ -275,25 +372,17 @@ def server(input, output, session):
         if d.empty:
             return empty_fig("Total Delay Minutes Per Hour", "No delayed trains in view")
 
-        # Hourly rollup
         d["hour"] = d["planned_departure"].dt.floor("h")
         summary = d.groupby("hour", as_index=False)["delayed_minutes"].sum().sort_values("hour")
 
-        # Convert datetime64[ns] -> datetime64[ms] to avoid huge ns numbers on x-axis
+        # Normalize datetime to ms to avoid ns-label issue; strip tz if present
         try:
-            # drop tz if present (won't error if naive with this guard)
             summary["hour"] = summary["hour"].dt.tz_localize(None)
         except Exception:
             pass
         summary["hour_ms"] = summary["hour"].astype("datetime64[ms]")
 
-        fig = px.line(
-            summary,
-            x="hour_ms",
-            y="delayed_minutes",
-            markers=True,
-            title="Total Delay Minutes Per Hour",
-        )
+        fig = px.line(summary, x="hour_ms", y="delayed_minutes", markers=True, title="Total Delay Minutes Per Hour")
         fig.update_xaxes(tickformat="%H:%M", hoverformat="%Y-%m-%d %H:%M")
         fig.update_layout(
             xaxis_title="Hour",
@@ -303,5 +392,26 @@ def server(input, output, session):
         )
         return fig
 
+    # ---- Debug panel ----
+    @render.text
+    def dbg_fetch():
+        df = data()
+        if df.empty:
+            return "Station view: 0 rows"
+        have_pd = df["planned_departure"].notna().sum() if "planned_departure" in df.columns else 0
+        return f"Station view: {len(df)} rows (planned_departure non-null: {have_pd})"
+
+    @render.text
+    def dbg_history():
+        df = history()
+        if df.empty:
+            return "History: 0 rows"
+        have_pd = df["planned_departure"].notna().sum() if "planned_departure" in df.columns else 0
+        return f"History: {len(df)} rows (planned_departure non-null: {have_pd})"
+
+    @render.text
+    def dbg_error():
+        msg = last_error()
+        return f"Last error: {msg or '(none)'}"
 
 app = App(app_ui, server)
