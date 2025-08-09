@@ -119,7 +119,15 @@ def fetch_station_df(station_name: str) -> pd.DataFrame:
 
         th = TimetableHelper(matches[0], AUTH)
         timetable = th.get_timetable()
-        trains = th.get_timetable_changes(timetable)
+        try:
+            trains = th.get_timetable_changes(timetable) or []
+        except Exception:
+            # Fallback: if changes parsing fails (e.g., missing 'ts' inside), use base timetable
+            try:
+                trains = timetable or []
+            except Exception:
+                trains = []
+
 
         rows = []
         # request_time taken directly in TARGET_TZ (Berlin by default)
@@ -136,13 +144,31 @@ def fetch_station_df(station_name: str) -> pd.DataFrame:
             planned_departure = parse_db_time_local(t.departure)
             current_departure = parse_db_time_local(getattr(t.train_changes, "departure", None))
             track = t.platform
-
+            
+            
+            # --- Robust message extraction (handles dicts/objects/missing fields safely) ---
             msg_parts = []
-            for m in t.train_changes.messages:
-                msg = getattr(m, "message", None)
-                if msg:
-                    msg_parts.append(str(msg))
+            try:
+                msgs = getattr(t.train_changes, "messages", []) or []
+            except Exception:
+                msgs = []
+            for m in msgs:
+                try:
+                    if isinstance(m, dict):
+                        # Prefer typical text fields; fall back to any printable content
+                        val = m.get("message") or m.get("text") or m.get("msg") or ""
+                    else:
+                        val = getattr(m, "message", None) or getattr(m, "text", None) or ""
+                    if val:
+                        msg_parts.append(str(val))
+                except Exception:
+                    # Last resort: best-effort repr without throwing
+                    try:
+                        msg_parts.append(str(m))
+                    except Exception:
+                        pass
             message = " ".join(msg_parts) if msg_parts else "No message"
+
 
             is_delayed, delayed_minutes = compute_delay(t.departure, getattr(t.train_changes, "departure", None))
 
