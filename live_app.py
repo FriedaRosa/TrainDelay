@@ -15,6 +15,15 @@ from shinywidgets import render_plotly, output_widget
 import plotly.express as px
 import plotly.graph_objects as go
 
+from pathlib import Path
+import io
+
+EXPORT_DIR = Path(__file__).resolve().parent / "exports"
+EXPORT_DIR.mkdir(parents=True, exist_ok=True)
+
+def _slugify(text: str) -> str:
+    return "".join(ch if ch.isalnum() else "_" for ch in text).strip("_").lower()
+
 # ---------- auth ----------
 load_dotenv()
 CLIENT_ID = os.getenv("DB_CLIENT_ID")
@@ -64,11 +73,12 @@ def fetch_station_df(station_name: str) -> pd.DataFrame:
             first_station = getattr(t, "passed_stations", None)
             first_station = (first_station or t.stations).split("|")[0]
             last_station = t.stations.split("|")[-1]
+            line_last = f"{line} {last_station}"  # merged column
+
             planned_departure = t.departure
             current_departure = getattr(t.train_changes, "departure", None)
             track = t.platform
 
-            # join messages
             msg_parts = []
             for m in t.train_changes.messages:
                 msg = getattr(m, "message", None)
@@ -81,10 +91,11 @@ def fetch_station_df(station_name: str) -> pd.DataFrame:
             rows.append(
                 {
                     "request_time": request_time,
-                    "line": line,
+                    "line": line,                 # <-- keep line
+                    "last_station": last_station, # <-- (optional) keep last_station
+                    "line_last": line_last,       # <-- merged column
                     "train_id": train_id,
                     "first_station": first_station,
-                    "last_station": last_station,
                     "planned_departure": parse_db_time(planned_departure),
                     "current_departure": parse_db_time(current_departure),
                     "track": track,
@@ -94,6 +105,7 @@ def fetch_station_df(station_name: str) -> pd.DataFrame:
                     "delayed_minutes": delayed_minutes,
                 }
             )
+
         return pd.DataFrame(rows)
     except Exception as e:
         print("[fetch_station_df] ERROR:", e)
@@ -135,6 +147,12 @@ app_ui = ui.page_fluid(
                 style="height:40vh; overflow:auto;",
             ),
         ),
+    ),
+    ui.row(
+        ui.column(
+            12,
+            ui.download_button("download_csv", "Save & Download CSV (append if exists)"),
+        )
     ),
     ui.hr(),
     ui.row(
@@ -228,7 +246,8 @@ def server(input, output, session):
             if "request_time" in df.columns and all(k in df.columns for k in DEDUPE_KEYS):
                 dedupe_keys = DEDUPE_KEYS
                 idx = df.groupby(dedupe_keys)["request_time"].idxmax()
-                df = df.loc[idx].sort_values(["planned_departure", "line", "train_id"], kind="stable")
+                sort_cols = [c for c in ["planned_departure", "line_last", "line", "train_id"] if c in df.columns]
+                df = df.loc[idx].sort_values(sort_cols, kind="stable")
 
             history.set(df)
             last_error.set("")
@@ -294,6 +313,53 @@ def server(input, output, session):
             selected = current if current in new_choices else "All"
             ui.update_select("line", choices=list(new_choices), selected=selected)
 
+    # Auto-load existing CSV for the selected station into history
+    last_loaded_station = reactive.Value("")
+
+    @reactive.effect
+    @reactive.event(input.station)
+    def _autoload_history():
+        st = input.station().strip()
+        if not st or st == last_loaded_station():
+            return
+
+        station_slug = _slugify(st)
+        path = EXPORT_DIR / f"{station_slug}.csv"
+
+        if path.exists():
+            try:
+                df_old = pd.read_csv(path)
+                for col in ("planned_departure", "current_departure", "request_time"):
+                    if col in df_old.columns:
+                        df_old[col] = pd.to_datetime(df_old[col], errors="coerce")
+                if "delayed_minutes" in df_old.columns:
+                    df_old["delayed_minutes"] = pd.to_numeric(df_old["delayed_minutes"], errors="coerce")
+
+                # ---- Backfill line_last for legacy files ----
+                if "line_last" not in df_old.columns:
+                    if "line" in df_old.columns and "last_station" in df_old.columns:
+                        df_old["line_last"] = (
+                            df_old["line"].fillna("") + " " + df_old["last_station"].fillna("")
+                        ).str.strip()
+                    elif "line" in df_old.columns:
+                        df_old["line_last"] = df_old["line"].astype(str)
+                    else:
+                        df_old["line_last"] = ""
+            except Exception as e:
+                print("[autoload] ERROR:", e)
+                df_old = pd.DataFrame()
+        else:
+            df_old = pd.DataFrame()
+
+        if not df_old.empty and "train_station" in df_old.columns:
+            df_old = df_old[df_old["train_station"] == st]
+
+        history.set(df_old)
+        last_loaded_station.set(st)
+        print(f"[autoload] loaded {len(df_old)} rows for station: {st}")
+
+
+
     # ---- Outputs ----
     @render.text
     def updated():
@@ -311,14 +377,74 @@ def server(input, output, session):
         if "error" in df.columns:
             return df
         cols = [
-            "request_time", "line", "train_id", "first_station", "last_station",
+            "request_time", "line_last", "train_id", "first_station",
             "planned_departure", "current_departure", "track", "message",
             "train_station", "is_delayed", "delayed_minutes",
         ]
         existing = [c for c in cols if c in df.columns]
         if not existing:
             return pd.DataFrame({"Message": ["No columns to display."]})
-        return df[existing].sort_values(["planned_departure", "line", "train_id"])
+        return df[existing].sort_values(["planned_departure", "line_last", "train_id"])
+
+
+    @render.download(filename=lambda: f"{_slugify(input.station() or 'station')}.csv")
+    def download_csv():
+        # Use full station history (ignores the Line dropdown)
+        df = data()
+
+        if df.empty:
+            buf = io.StringIO()
+            pd.DataFrame(columns=[
+                "request_time","line","train_id","first_station","last_station",
+                "planned_departure","current_departure","track","message",
+                "train_station","is_delayed","delayed_minutes"
+            ]).to_csv(buf, index=False)
+            yield buf.getvalue()
+            return
+
+        # Coerce types we rely on
+        for col in ("planned_departure", "current_departure", "request_time"):
+            if col in df.columns:
+                df[col] = pd.to_datetime(df[col], errors="coerce")
+        if "delayed_minutes" in df.columns:
+            df["delayed_minutes"] = pd.to_numeric(df["delayed_minutes"], errors="coerce")
+
+        # Load existing CSV for this station (if any), then append
+        station_slug = _slugify(input.station() or "station")
+        existing_path = EXPORT_DIR / f"{station_slug}.csv"
+
+        if existing_path.exists():
+            try:
+                df_old = pd.read_csv(existing_path)
+                for col in ("planned_departure", "current_departure", "request_time"):
+                    if col in df_old.columns:
+                        df_old[col] = pd.to_datetime(df_old[col], errors="coerce")
+                if "delayed_minutes" in df_old.columns:
+                    df_old["delayed_minutes"] = pd.to_numeric(df_old["delayed_minutes"], errors="coerce")
+            except Exception as e:
+                print("[download] read existing ERROR:", e)
+                df_old = pd.DataFrame()
+        else:
+            df_old = pd.DataFrame()
+
+        merged = pd.concat([df_old, df], ignore_index=True)
+
+        # Dedupe: keep latest by request_time per (station, train, planned)
+        keys = [c for c in ["train_station", "train_id", "planned_departure"] if c in merged.columns]
+        if keys and "request_time" in merged.columns:
+            idx = merged.groupby(keys)["request_time"].idxmax()
+            merged = merged.loc[idx]
+
+        sort_cols = [c for c in ["planned_departure", "line", "train_id"] if c in merged.columns]
+        if sort_cols:
+            merged = merged.sort_values(sort_cols, kind="stable")
+
+        # Save to server and stream to user
+        merged.to_csv(existing_path, index=False, encoding="utf-8", date_format="%Y-%m-%d %H:%M:%S")
+
+        buf = io.StringIO()
+        merged.to_csv(buf, index=False)
+        yield buf.getvalue()
 
     # ---- Plotly charts (run on history) ----
     @render_plotly
@@ -372,7 +498,7 @@ def server(input, output, session):
         if d.empty:
             return empty_fig("Total Delay Minutes Per Hour", "No delayed trains in view")
 
-        d["hour"] = d["planned_departure"].dt.floor("h")
+        d["hour"] = d["planned_departure"].dt.floor("15min")
         summary = d.groupby("hour", as_index=False)["delayed_minutes"].sum().sort_values("hour")
 
         # Normalize datetime to ms to avoid ns-label issue; strip tz if present
@@ -385,7 +511,7 @@ def server(input, output, session):
         fig = px.line(summary, x="hour_ms", y="delayed_minutes", markers=True, title="Total Delay Minutes Per Hour")
         fig.update_xaxes(tickformat="%H:%M", hoverformat="%Y-%m-%d %H:%M")
         fig.update_layout(
-            xaxis_title="Hour",
+            xaxis_title="Time (15-min bins)",
             yaxis_title="Total Delay Minutes",
             margin=dict(l=10, r=10, t=60, b=10),
             yaxis=dict(rangemode="tozero"),
