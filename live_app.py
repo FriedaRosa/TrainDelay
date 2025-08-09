@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import os
 import time
-import datetime
+from datetime import datetime
 import pandas as pd
 
 from shiny import App, ui, render, reactive
@@ -18,13 +18,79 @@ import plotly.graph_objects as go
 from pathlib import Path
 import io
 
+# ======================= Paths =======================
 EXPORT_DIR = Path(__file__).resolve().parent / "exports"
 EXPORT_DIR.mkdir(parents=True, exist_ok=True)
 
 def _slugify(text: str) -> str:
     return "".join(ch if ch.isalnum() else "_" for ch in text).strip("_").lower()
 
-# ---------- auth ----------
+# ======================= Timezones =======================
+# API returns *German local time* (Europe/Berlin) as naïve timestamps.
+# We'll localize those to SOURCE_TZ and display/compute in TARGET_TZ.
+TARGET_TZ = os.getenv("APP_TIMEZONE", "Europe/Berlin")        # display/logic TZ
+SOURCE_TZ = os.getenv("SOURCE_TIMEZONE", "Europe/Berlin")     # API wall-clock TZ
+
+def ensure_in_tz(x: pd.Series | pd.Timestamp | None, tz: str):
+    """
+    Make a Series or Timestamp tz-aware in `tz`.
+    - If tz-naive: localize to `tz`.
+    - If tz-aware: convert to `tz`.
+    """
+    if x is None:
+        return x
+    if isinstance(x, pd.Series):
+        s = pd.to_datetime(x, errors="coerce", utc=False)
+        if getattr(s.dt, "tz", None) is not None:
+            return s.dt.tz_convert(tz)
+        else:
+            return s.dt.tz_localize(tz)
+    t = pd.to_datetime(x, errors="coerce", utc=False)
+    if getattr(t, "tzinfo", None) is None:
+        return t.tz_localize(tz)
+    return t.tz_convert(tz)
+
+def parse_db_time_local(val):
+    """
+    Parse DB API time that is in *German local time* (Europe/Berlin) but naïve.
+    Steps:
+      1) Parse to naïve Timestamp.
+      2) Localize to SOURCE_TZ (Berlin).
+      3) Convert to TARGET_TZ (default Berlin, but can be changed via APP_TIMEZONE).
+    Returns tz-aware Timestamp in TARGET_TZ (or NaT).
+    """
+    if val is None or (isinstance(val, str) and not val.strip()):
+        return pd.NaT
+
+    # Fast path for datetime-like
+    if isinstance(val, (datetime, pd.Timestamp)):
+        ts = pd.to_datetime(val, errors="coerce", utc=False)
+    else:
+        s = str(val)
+        # Try exact DB format first: "yyMMddHHmm" (e.g. "2508091504")
+        try:
+            ts = pd.to_datetime(datetime.strptime(s, "%y%m%d%H%M"), errors="raise")
+        except Exception:
+            ts = pd.to_datetime(s, errors="coerce", utc=False)
+
+    if pd.isna(ts):
+        return pd.NaT
+
+    # Localize naïve to SOURCE_TZ (Berlin) then convert to TARGET_TZ
+    if isinstance(ts, pd.Timestamp) and ts.tzinfo is None:
+        ts = ts.tz_localize(SOURCE_TZ)
+    else:
+        ts = ensure_in_tz(ts, SOURCE_TZ)
+    return ts.tz_convert(TARGET_TZ)
+
+def strip_tz_for_plot(x: pd.Series) -> pd.Series:
+    """Drop timezone for plotting while keeping wall-clock time (ms resolution)."""
+    x = pd.to_datetime(x, errors="coerce", utc=False)
+    if getattr(x.dt, "tz", None) is not None:
+        x = x.dt.tz_convert(TARGET_TZ)
+    return x.dt.tz_localize(None).astype("datetime64[ms]")
+
+# ======================= Auth =======================
 load_dotenv()
 CLIENT_ID = os.getenv("DB_CLIENT_ID")
 CLIENT_SECRET = os.getenv("DB_CLIENT_SECRET")
@@ -33,27 +99,17 @@ if not CLIENT_ID or not CLIENT_SECRET:
 
 AUTH = ApiAuthentication(CLIENT_ID, CLIENT_SECRET)
 
-# ---------- helpers ----------
-def parse_db_time(val):
-    if val is None or (isinstance(val, str) and not val.strip()):
-        return pd.NaT
-    if isinstance(val, (datetime.datetime, pd.Timestamp)):
-        return pd.to_datetime(val)
-    s = str(val)
-    try:
-        return pd.to_datetime(datetime.datetime.strptime(s, "%y%m%d%H%M"))
-    except Exception:
-        return pd.to_datetime(s, errors="coerce")
-
+# ======================= Delay helpers =======================
 def compute_delay(planned, current):
-    p = parse_db_time(planned)
-    c = parse_db_time(current)
+    p = parse_db_time_local(planned)
+    c = parse_db_time_local(current)
     if pd.isna(p) or pd.isna(c):
         return 0, 0
     diff_min = (c - p).total_seconds() / 60.0
     delay_minutes = int(round(diff_min))
     return (1 if delay_minutes > 0 else 0), delay_minutes
 
+# ======================= Fetch =======================
 def fetch_station_df(station_name: str) -> pd.DataFrame:
     try:
         sh = StationHelper()
@@ -66,17 +122,19 @@ def fetch_station_df(station_name: str) -> pd.DataFrame:
         trains = th.get_timetable_changes(timetable)
 
         rows = []
-        request_time = pd.Timestamp.now().strftime('%H:%M:%S')
+        # request_time taken directly in TARGET_TZ (Berlin by default)
+        request_time = pd.Timestamp.now(tz=TARGET_TZ)
+
         for t in trains:
             line = f"{t.train_type}{getattr(t, 'train_line', '')}"
             train_id = t.train_number
             first_station = getattr(t, "passed_stations", None)
             first_station = (first_station or t.stations).split("|")[0]
             last_station = t.stations.split("|")[-1]
-            line_last = f"{line} {last_station}"  # merged column
+            line_last = f"{line} {last_station}"
 
-            planned_departure = t.departure
-            current_departure = getattr(t.train_changes, "departure", None)
+            planned_departure = parse_db_time_local(t.departure)
+            current_departure = parse_db_time_local(getattr(t.train_changes, "departure", None))
             track = t.platform
 
             msg_parts = []
@@ -86,18 +144,18 @@ def fetch_station_df(station_name: str) -> pd.DataFrame:
                     msg_parts.append(str(msg))
             message = " ".join(msg_parts) if msg_parts else "No message"
 
-            is_delayed, delayed_minutes = compute_delay(planned_departure, current_departure)
+            is_delayed, delayed_minutes = compute_delay(t.departure, getattr(t.train_changes, "departure", None))
 
             rows.append(
                 {
-                    "request_time": request_time,
-                    "line": line,                 # <-- keep line
-                    "last_station": last_station, # <-- (optional) keep last_station
-                    "line_last": line_last,       # <-- merged column
+                    "request_time": request_time,   # tz-aware (TARGET_TZ)
+                    "line": line,
+                    "last_station": last_station,
+                    "line_last": line_last,
                     "train_id": train_id,
                     "first_station": first_station,
-                    "planned_departure": parse_db_time(planned_departure),
-                    "current_departure": parse_db_time(current_departure),
+                    "planned_departure": planned_departure,  # tz-aware (TARGET_TZ)
+                    "current_departure": current_departure,  # tz-aware (TARGET_TZ)
                     "track": track,
                     "message": message,
                     "train_station": matches[0][3],
@@ -111,6 +169,7 @@ def fetch_station_df(station_name: str) -> pd.DataFrame:
         print("[fetch_station_df] ERROR:", e)
         return pd.DataFrame({"error": [str(e)]})
 
+# ======================= UI =======================
 def empty_fig(title: str, message: str = "No data for selected filters") -> go.Figure:
     fig = go.Figure()
     fig.update_layout(
@@ -122,16 +181,15 @@ def empty_fig(title: str, message: str = "No data for selected filters") -> go.F
     )
     return fig
 
-# ---------- UI ----------
 app_ui = ui.page_fluid(
     ui.h3("🚆 Live Deutsche Bahn delays"),
+    ui.markdown(f"_API TZ: **{SOURCE_TZ}** → Display TZ: **{TARGET_TZ}**_"),
     ui.row(
         ui.column(
             4,
             ui.input_text("station", "Station", value="Köln Hbf", placeholder="Type a station"),
             ui.input_select("line", "Line", choices=["All"], selected="All"),
             ui.input_switch("auto", "Auto-refresh", value=True),
-            # hard minimum visually = 180 seconds (3 minutes)
             ui.input_slider("secs", "Refresh every (seconds)", min=180, max=2000, value=300, step=10),
             ui.input_action_button("refresh", "Refresh now"),
         ),
@@ -142,7 +200,7 @@ app_ui = ui.page_fluid(
                 ui.output_text("updated"),
             ),
             ui.card(
-                ui.card_header("Live trains (current hour)"),
+                ui.card_header("Live trains (upcoming)"),
                 ui.output_data_frame("table"),
                 style="height:40vh; overflow:auto;",
             ),
@@ -151,7 +209,6 @@ app_ui = ui.page_fluid(
     ui.row(
         ui.column(12, ui.output_text("refresh_debug"))
     ),
-
     ui.row(
         ui.column(
             12,
@@ -162,7 +219,7 @@ app_ui = ui.page_fluid(
     ui.row(
         ui.column(4, ui.card(ui.card_header("On-time vs Delayed"), output_widget("delay_plot"))),
         ui.column(4, ui.card(ui.card_header("Delayed by Line"), output_widget("line_delay_plot"))),
-        ui.column(4, ui.card(ui.card_header("Delay Minutes per Hour"), output_widget("delay_timeline_plot"))),
+        ui.column(4, ui.card(ui.card_header("Delay Minutes per 15 min"), output_widget("delay_timeline_plot"))),
     ),
     ui.hr(),
     ui.card(
@@ -175,45 +232,38 @@ app_ui = ui.page_fluid(
     ),
 )
 
-# ---------- Server ----------
+# ======================= Server =======================
 def server(input, output, session):
     # --- state ---
     history = reactive.Value(pd.DataFrame())
     _line_choices_cache = reactive.Value(("All",))
     last_error = reactive.Value("")
-    fetching = reactive.Value(False)          # lock to prevent overlap
-    last_fetch_monotonic = reactive.Value(0)  # seconds from time.monotonic()
-    
-    # Track refresh clicks for debugging
+    fetching = reactive.Value(False)
+    last_fetch_monotonic = reactive.Value(0)
+
+    # Debug
     refresh_clicks = reactive.Value(0)
-    last_manual_msg = reactive.Value("")  # message to show in UI
+    last_manual_msg = reactive.Value("")
 
-
-    # --- tuning knobs ---
+    # --- knobs ---
     WINDOW_HOURS = 12
     MAX_ROWS = 5000
     DEDUPE_KEYS = ["train_station", "train_id", "planned_departure"]
-    MIN_REFRESH_SEC = 180  # hard floor = 3 minutes
+    MIN_REFRESH_SEC = 180
 
-    # Shared fetch routine (force=True bypasses the throttle for manual refresh)
+    # Shared fetch routine
     def _do_fetch_and_merge(station_name: str, *, force: bool = False):
         now = time.monotonic()
-
-        # HARD THROTTLE: never fetch more often than MIN_REFRESH_SEC in AUTO mode
         if not force:
             elapsed = now - (last_fetch_monotonic() or 0)
             if elapsed < MIN_REFRESH_SEC:
-                # Too soon since last fetch; skip silently (or log if you want)
-                # print(f"[history] skip: throttled ({elapsed:.1f}s since last)")
                 return
-
         if fetching():
-            return  # another fetch is still running
+            return
 
         fetching.set(True)
         try:
             df_new = fetch_station_df(station_name)
-            # record a fetch attempt time regardless of outcome (prevents hammering on errors)
             last_fetch_monotonic.set(now)
 
             if df_new.empty:
@@ -227,10 +277,10 @@ def server(input, output, session):
                 print("[history] fetch error:", err)
                 return
 
-            # Coerce only new batch
+            # Normalize types (tz-aware in TARGET_TZ)
             for col in ("planned_departure", "current_departure", "request_time"):
                 if col in df_new.columns:
-                    df_new[col] = pd.to_datetime(df_new[col], errors="coerce")
+                    df_new[col] = ensure_in_tz(df_new[col], TARGET_TZ)
             if "delayed_minutes" in df_new.columns:
                 df_new["delayed_minutes"] = pd.to_numeric(df_new["delayed_minutes"], errors="coerce")
             if "line" in df_new.columns:
@@ -243,7 +293,7 @@ def server(input, output, session):
 
             # Time window cap (keep NaT rows too)
             if "planned_departure" in df.columns:
-                cutoff = pd.Timestamp.now() - pd.Timedelta(hours=WINDOW_HOURS)
+                cutoff = pd.Timestamp.now(tz=TARGET_TZ) - pd.Timedelta(hours=WINDOW_HOURS)
                 mask = df["planned_departure"].notna() & (df["planned_departure"] >= cutoff)
                 df = pd.concat([df[mask], df[df["planned_departure"].isna()]], ignore_index=True)
 
@@ -251,10 +301,9 @@ def server(input, output, session):
             if "request_time" in df.columns and len(df) > MAX_ROWS:
                 df = df.nlargest(MAX_ROWS, "request_time")
 
-            # Fast dedupe: keep latest request per key
+            # Dedupe: keep latest request per key
             if "request_time" in df.columns and all(k in df.columns for k in DEDUPE_KEYS):
-                dedupe_keys = DEDUPE_KEYS
-                idx = df.groupby(dedupe_keys)["request_time"].idxmax()
+                idx = df.groupby(DEDUPE_KEYS)["request_time"].idxmax()
                 sort_cols = [c for c in ["planned_departure", "line_last", "line", "train_id"] if c in df.columns]
                 df = df.loc[idx].sort_values(sort_cols, kind="stable")
 
@@ -264,7 +313,7 @@ def server(input, output, session):
         finally:
             fetching.set(False)
 
-    # -------- AUTO mode: periodic fetch only when auto is ON (hard limited) --------
+    # Auto mode
     @reactive.effect
     def _auto_fetch():
         if not input.auto():
@@ -274,31 +323,24 @@ def server(input, output, session):
         st = input.station().strip()
         if not st:
             return
-        _do_fetch_and_merge(st, force=False)  # obey hard throttle
+        _do_fetch_and_merge(st, force=False)
 
-
-    # -------- MANUAL mode: fetch only when button is clicked (no throttle) --------
+    # Manual mode
     @reactive.effect
     @reactive.event(input.refresh)
     def _manual_fetch():
-        # Count the click and surface a message in UI
         refresh_clicks.set(refresh_clicks() + 1)
-
         st = input.station().strip()
         if not st:
             last_manual_msg.set("Manual refresh clicked, but station is empty.")
             return
-
-        # Nuke throttle so manual is never blocked
         if 'last_fetch_monotonic' in locals():
             last_fetch_monotonic.set(0)
-
         print("[manual] refresh clicked; fetching now…")
-        last_manual_msg.set(f"Manual refresh #{refresh_clicks()} at {pd.Timestamp.now().strftime('%H:%M:%S')}")
-        _do_fetch_and_merge(st, force=True)  # force bypasses throttle
+        last_manual_msg.set(f"Manual refresh #{refresh_clicks()} at {pd.Timestamp.now(tz=TARGET_TZ).strftime('%H:%M:%S')}")
+        _do_fetch_and_merge(st, force=True)
 
-
-    # Current view = history filtered to station
+    # Current view = by station
     @reactive.calc
     def data():
         df = history()
@@ -307,18 +349,24 @@ def server(input, output, session):
             return df
         return df[df["train_station"] == st]
 
-    # Line-filtered view
+    # Line filter + upcoming only (in TARGET_TZ)
     @reactive.calc
     def filtered():
         df = data()
         sel = input.line()
         if df.empty or "error" in df.columns:
             return df
+
         if sel and sel != "All" and "line" in df.columns:
-            return df[df["line"] == sel]
+            df = df[df["line"] == sel]
+
+        if "planned_departure" in df.columns:
+            now_local = pd.Timestamp.now(tz=TARGET_TZ)
+            df = df[df["planned_departure"].notna() & (df["planned_departure"] >= now_local)]
+
         return df
 
-    # Keep Line choices in sync with station view
+    # Keep Line choices synced
     @reactive.effect
     def _update_line_choices():
         df = data()
@@ -334,7 +382,7 @@ def server(input, output, session):
             selected = current if current in new_choices else "All"
             ui.update_select("line", choices=list(new_choices), selected=selected)
 
-    # Auto-load existing CSV for the selected station into history
+    # Autoload CSV history for station
     last_loaded_station = reactive.Value("")
 
     @reactive.effect
@@ -352,11 +400,17 @@ def server(input, output, session):
                 df_old = pd.read_csv(path)
                 for col in ("planned_departure", "current_departure", "request_time"):
                     if col in df_old.columns:
-                        df_old[col] = pd.to_datetime(df_old[col], errors="coerce")
+                        dt_col = pd.to_datetime(df_old[col], errors="coerce", utc=False)
+                        # If tz-naive, assume they were saved as TARGET_TZ and localize; else convert
+                        if getattr(dt_col.dt, "tz", None) is None:
+                            dt_col = dt_col.dt.tz_localize(TARGET_TZ)
+                        else:
+                            dt_col = dt_col.dt.tz_convert(TARGET_TZ)
+                        df_old[col] = dt_col
                 if "delayed_minutes" in df_old.columns:
                     df_old["delayed_minutes"] = pd.to_numeric(df_old["delayed_minutes"], errors="coerce")
 
-                # ---- Backfill line_last for legacy files ----
+                # Backfill line_last
                 if "line_last" not in df_old.columns:
                     if "line" in df_old.columns and "last_station" in df_old.columns:
                         df_old["line_last"] = (
@@ -379,8 +433,6 @@ def server(input, output, session):
         last_loaded_station.set(st)
         print(f"[autoload] loaded {len(df_old)} rows for station: {st}")
 
-
-
     # ---- Outputs ----
     @render.text
     def updated():
@@ -389,8 +441,9 @@ def server(input, output, session):
             return "No data (yet)."
         if "error" in df.columns:
             return f"Error: {df.loc[0,'error']}"
-        ts = df["request_time"].max() if "request_time" in df.columns else pd.Timestamp.now()
-        return f"{pd.to_datetime(ts).strftime('%Y-%m-%d %H:%M:%S')}"
+        ts = df["request_time"].max() if "request_time" in df.columns else pd.Timestamp.now(tz=TARGET_TZ)
+        ts = ensure_in_tz(ts, TARGET_TZ)
+        return ts.strftime(f"%Y-%m-%d %H:%M:%S {TARGET_TZ}")
 
     @render.data_frame
     def table():
@@ -405,12 +458,20 @@ def server(input, output, session):
         existing = [c for c in cols if c in df.columns]
         if not existing:
             return pd.DataFrame({"Message": ["No columns to display."]})
-        return df[existing].sort_values(["planned_departure", "line_last", "train_id"])
 
+        d = df[existing].copy()
+        # Pretty formatting
+        for c in ("request_time", "planned_departure", "current_departure"):
+            if c in d.columns:
+                d[c] = ensure_in_tz(d[c], TARGET_TZ)
+                d[c] = pd.to_datetime(d[c], errors="coerce")
+                d[c] = d[c].dt.tz_convert(TARGET_TZ).dt.strftime(f"%Y-%m-%d %H:%M:%S {TARGET_TZ}")
+
+        return d.sort_values(["planned_departure", "line_last", "train_id"])
 
     @render.download(filename=lambda: f"{_slugify(input.station() or 'station')}.csv")
     def download_csv():
-        # Use full station history (ignores the Line dropdown)
+        # Use full station view history (ignores line filter)
         df = data()
 
         if df.empty:
@@ -418,19 +479,19 @@ def server(input, output, session):
             pd.DataFrame(columns=[
                 "request_time","line","train_id","first_station","last_station",
                 "planned_departure","current_departure","track","message",
-                "train_station","is_delayed","delayed_minutes"
+                "train_station","is_delayed","delayed_minutes","line_last"
             ]).to_csv(buf, index=False)
             yield buf.getvalue()
             return
 
-        # Coerce types we rely on
+        # Ensure tz-aware TARGET_TZ before saving
         for col in ("planned_departure", "current_departure", "request_time"):
             if col in df.columns:
-                df[col] = pd.to_datetime(df[col], errors="coerce")
+                df[col] = ensure_in_tz(df[col], TARGET_TZ)
         if "delayed_minutes" in df.columns:
             df["delayed_minutes"] = pd.to_numeric(df["delayed_minutes"], errors="coerce")
 
-        # Load existing CSV for this station (if any), then append
+        # Load existing CSV and append
         station_slug = _slugify(input.station() or "station")
         existing_path = EXPORT_DIR / f"{station_slug}.csv"
 
@@ -439,7 +500,12 @@ def server(input, output, session):
                 df_old = pd.read_csv(existing_path)
                 for col in ("planned_departure", "current_departure", "request_time"):
                     if col in df_old.columns:
-                        df_old[col] = pd.to_datetime(df_old[col], errors="coerce")
+                        dt_col = pd.to_datetime(df_old[col], errors="coerce", utc=False)
+                        if getattr(dt_col.dt, "tz", None) is None:
+                            dt_col = dt_col.dt.tz_localize(TARGET_TZ)
+                        else:
+                            dt_col = dt_col.dt.tz_convert(TARGET_TZ)
+                        df_old[col] = dt_col
                 if "delayed_minutes" in df_old.columns:
                     df_old["delayed_minutes"] = pd.to_numeric(df_old["delayed_minutes"], errors="coerce")
             except Exception as e:
@@ -450,7 +516,7 @@ def server(input, output, session):
 
         merged = pd.concat([df_old, df], ignore_index=True)
 
-        # Dedupe: keep latest by request_time per (station, train, planned)
+        # Dedupe by latest request_time per (station, train, planned)
         keys = [c for c in ["train_station", "train_id", "planned_departure"] if c in merged.columns]
         if keys and "request_time" in merged.columns:
             idx = merged.groupby(keys)["request_time"].idxmax()
@@ -460,23 +526,19 @@ def server(input, output, session):
         if sort_cols:
             merged = merged.sort_values(sort_cols, kind="stable")
 
-        # Save to server and stream to user
-        merged.to_csv(existing_path, index=False, encoding="utf-8", date_format="%Y-%m-%d %H:%M:%S")
+        # Save (ISO-8601 strings; tz offset preserved)
+        merged.to_csv(existing_path, index=False)
 
         buf = io.StringIO()
         merged.to_csv(buf, index=False)
         yield buf.getvalue()
-
 
     @render.text
     def refresh_debug():
         msg = last_manual_msg()
         return msg or "Click 'Refresh now' to fetch immediately."
 
-
-
-
-    # ---- Plotly charts (run on history) ----
+    # ---- Plots ----
     @render_plotly
     def delay_plot():
         df = filtered()
@@ -492,7 +554,6 @@ def server(input, output, session):
 
     @render_plotly
     def line_delay_plot():
-        # ignore line filter; show all lines for the selected station's history
         df = data()
         if df.empty or "is_delayed" not in df.columns:
             return empty_fig("Delayed Trains by Line")
@@ -514,41 +575,40 @@ def server(input, output, session):
     def delay_timeline_plot():
         df = filtered()
         if df.empty:
-            return empty_fig("Total Delay Minutes Per Hour", "No data in view")
+            return empty_fig("Total Delay Minutes per 15 min", "No data in view")
 
         needed = {"planned_departure", "delayed_minutes", "is_delayed"}
         if not needed.issubset(df.columns):
-            return empty_fig("Total Delay Minutes Per Hour", "Missing required columns")
+            return empty_fig("Total Delay Minutes per 15 min", "Missing required columns")
 
         d = df.copy()
-        d["planned_departure"] = pd.to_datetime(d["planned_departure"], errors="coerce")
+        d["planned_departure"] = ensure_in_tz(d["planned_departure"], TARGET_TZ)
         d["delayed_minutes"] = pd.to_numeric(d["delayed_minutes"], errors="coerce")
         d = d.dropna(subset=["planned_departure", "delayed_minutes"])
         d = d[d["is_delayed"] == 1]
         if d.empty:
-            return empty_fig("Total Delay Minutes Per Hour", "No delayed trains in view")
+            return empty_fig("Total Delay Minutes per 15 min", "No delayed trains in view")
 
-        d["hour"] = d["planned_departure"].dt.floor("15min")
-        summary = d.groupby("hour", as_index=False)["delayed_minutes"].sum().sort_values("hour")
+        d["bin"] = d["planned_departure"].dt.floor("15min")
+        summary = d.groupby("bin", as_index=False)["delayed_minutes"].sum().sort_values("bin")
 
-        # Normalize datetime to ms to avoid ns-label issue; strip tz if present
-        try:
-            summary["hour"] = summary["hour"].dt.tz_localize(None)
-        except Exception:
-            pass
-        summary["hour_ms"] = summary["hour"].astype("datetime64[ms]")
+        # For plotting: drop tz (keep wall-clock)
+        plot_df = pd.DataFrame({
+            "bin": strip_tz_for_plot(summary["bin"]),
+            "delayed_minutes": summary["delayed_minutes"]
+        })
 
-        fig = px.line(summary, x="hour_ms", y="delayed_minutes", markers=True, title="Total Delay Minutes Per Hour")
+        fig = px.line(plot_df, x="bin", y="delayed_minutes", markers=True, title="Total Delay Minutes per 15 min")
         fig.update_xaxes(tickformat="%H:%M", hoverformat="%Y-%m-%d %H:%M")
         fig.update_layout(
-            xaxis_title="Time (15-min bins)",
+            xaxis_title=f"Time ({TARGET_TZ})",
             yaxis_title="Total Delay Minutes",
             margin=dict(l=10, r=10, t=60, b=10),
             yaxis=dict(rangemode="tozero"),
         )
         return fig
 
-    # ---- Debug panel ----
+    # Debug panel
     @render.text
     def dbg_fetch():
         df = data()
