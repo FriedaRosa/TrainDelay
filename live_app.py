@@ -313,7 +313,7 @@ def server(input, output, session):
             selected = current if current in new_choices else "All"
             ui.update_select("line", choices=list(new_choices), selected=selected)
 
-    # Auto-load existing CSV for the selected station into history
+    # Auto-load existing CSV for the selected station into history, then fetch once
     last_loaded_station = reactive.Value("")
 
     @reactive.effect
@@ -334,13 +334,10 @@ def server(input, output, session):
                         df_old[col] = pd.to_datetime(df_old[col], errors="coerce")
                 if "delayed_minutes" in df_old.columns:
                     df_old["delayed_minutes"] = pd.to_numeric(df_old["delayed_minutes"], errors="coerce")
-
-                # ---- Backfill line_last for legacy files ----
+                # Backfill line_last for legacy files
                 if "line_last" not in df_old.columns:
                     if "line" in df_old.columns and "last_station" in df_old.columns:
-                        df_old["line_last"] = (
-                            df_old["line"].fillna("") + " " + df_old["last_station"].fillna("")
-                        ).str.strip()
+                        df_old["line_last"] = (df_old["line"].fillna("") + " " + df_old["last_station"].fillna("")).str.strip()
                     elif "line" in df_old.columns:
                         df_old["line_last"] = df_old["line"].astype(str)
                     else:
@@ -351,12 +348,31 @@ def server(input, output, session):
         else:
             df_old = pd.DataFrame()
 
+        # Keep only selected station if column present
         if not df_old.empty and "train_station" in df_old.columns:
             df_old = df_old[df_old["train_station"] == st]
 
-        history.set(df_old)
+        # MERGE (don’t overwrite): combine CSV with any existing in-memory rows
+        df_hist = history()
+        merged = pd.concat([df_old, df_hist], ignore_index=True)
+
+        # Dedupe: latest request per (station, train, planned)
+        keys = [c for c in ["train_station", "train_id", "planned_departure"] if c in merged.columns]
+        if keys and "request_time" in merged.columns:
+            idx = merged.groupby(keys)["request_time"].idxmax()
+            merged = merged.loc[idx]
+
+        # Stable sort (works with line_last or line)
+        sort_cols = [c for c in ["planned_departure", "line_last", "line", "train_id"] if c in merged.columns]
+        if sort_cols:
+            merged = merged.sort_values(sort_cols, kind="stable")
+
+        history.set(merged)
         last_loaded_station.set(st)
-        print(f"[autoload] loaded {len(df_old)} rows for station: {st}")
+        print(f"[autoload] loaded+merged {len(merged)} rows for station: {st}")
+
+        # Trigger one immediate fetch to ensure “Last updated” reflects live data
+        _do_fetch_and_merge(st, force=True)
 
 
 
@@ -364,12 +380,16 @@ def server(input, output, session):
     @render.text
     def updated():
         df = data()
+        if "error" in df.columns and not df.empty:
+            return df.loc[0, "error"]
         if df.empty:
             return "No data (yet)."
-        if "error" in df.columns:
-            return f"Error: {df.loc[0,'error']}"
-        ts = df["request_time"].max() if "request_time" in df.columns else pd.Timestamp.now()
+        ts = df["request_time"].max() if "request_time" in df.columns else None
+        if pd.isna(ts):
+            # fallback to now so it doesn’t look frozen
+            ts = pd.Timestamp.now()
         return f"{pd.to_datetime(ts).strftime('%Y-%m-%d %H:%M:%S')}"
+
 
     @render.data_frame
     def table():
