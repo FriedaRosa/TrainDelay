@@ -119,69 +119,90 @@ def fetch_station_df(station_name: str) -> pd.DataFrame:
 
         th = TimetableHelper(matches[0], AUTH)
         timetable = th.get_timetable()
+        # Try to enrich with changes; if that fails, fall back to base timetable
         try:
             trains = th.get_timetable_changes(timetable) or []
         except Exception:
-            # Fallback: if changes parsing fails (e.g., missing 'ts' inside), use base timetable
-            try:
-                trains = timetable or []
-            except Exception:
-                trains = []
-
+            trains = timetable or []
 
         rows = []
-        # request_time taken directly in TARGET_TZ (Berlin by default)
         request_time = pd.Timestamp.now(tz=TARGET_TZ)
 
         for t in trains:
-            line = f"{t.train_type}{getattr(t, 'train_line', '')}"
-            train_id = t.train_number
-            first_station = getattr(t, "passed_stations", None)
-            first_station = (first_station or t.stations).split("|")[0]
-            last_station = t.stations.split("|")[-1]
-            line_last = f"{line} {last_station}"
+            # ---- Safe getters ----
+            train_type = (getattr(t, "train_type", "") or "")
+            train_line = (getattr(t, "train_line", "") or "")
+            line = f"{train_type}{train_line}".strip()
+            train_id = getattr(t, "train_number", None)
 
-            planned_departure = parse_db_time_local(t.departure)
-            current_departure = parse_db_time_local(getattr(t.train_changes, "departure", None))
-            track = t.platform
-            
-            
-            # --- Robust message extraction (handles dicts/objects/missing fields safely) ---
+            stations_str = (getattr(t, "stations", "") or "")
+            first_station = getattr(t, "passed_stations", None)
+            if not first_station:
+                first_station = stations_str.split("|")[0] if stations_str else ""
+            last_station = stations_str.split("|")[-1] if stations_str else ""
+            line_last = f"{line} {last_station}".strip()
+
+            changes = getattr(t, "train_changes", None)
+
+            # Planned/current departures may live on base or changes
+            planned_raw = getattr(t, "departure", None)
+            if planned_raw is None:
+                planned_raw = getattr(t, "planned_departure", None)
+
+            current_raw = getattr(changes, "departure", None) if changes else None
+            if current_raw is None:
+                current_raw = getattr(t, "current_departure", None)
+
+            # Track/platform can be on either
+            track = getattr(changes, "platform", None) if changes else None
+            if track is None:
+                track = getattr(t, "platform", None)
+
+            # ---- Robust message extraction ----
             msg_parts = []
             try:
-                msgs = getattr(t.train_changes, "messages", []) or []
+                msgs = getattr(changes, "messages", []) if changes else []
+                msgs = msgs or []
             except Exception:
                 msgs = []
             for m in msgs:
                 try:
                     if isinstance(m, dict):
-                        # Prefer typical text fields; fall back to any printable content
                         val = m.get("message") or m.get("text") or m.get("msg") or ""
                     else:
                         val = getattr(m, "message", None) or getattr(m, "text", None) or ""
                     if val:
                         msg_parts.append(str(val))
                 except Exception:
-                    # Last resort: best-effort repr without throwing
                     try:
                         msg_parts.append(str(m))
                     except Exception:
                         pass
             message = " ".join(msg_parts) if msg_parts else "No message"
 
+            # ---- Parse times (Berlin-local naive → TARGET_TZ) ----
+            planned_departure = parse_db_time_local(planned_raw)
+            current_departure = parse_db_time_local(current_raw)
 
-            is_delayed, delayed_minutes = compute_delay(t.departure, getattr(t.train_changes, "departure", None))
+            # ---- Compute delay safely ----
+            if pd.notna(planned_departure) and pd.notna(current_departure):
+                diff_min = (current_departure - planned_departure).total_seconds() / 60.0
+                delayed_minutes = int(round(diff_min))
+                is_delayed = 1 if delayed_minutes > 0 else 0
+            else:
+                delayed_minutes = 0
+                is_delayed = 0
 
             rows.append(
                 {
-                    "request_time": request_time,   # tz-aware (TARGET_TZ)
+                    "request_time": request_time,
                     "line": line,
                     "last_station": last_station,
                     "line_last": line_last,
                     "train_id": train_id,
                     "first_station": first_station,
-                    "planned_departure": planned_departure,  # tz-aware (TARGET_TZ)
-                    "current_departure": current_departure,  # tz-aware (TARGET_TZ)
+                    "planned_departure": planned_departure,
+                    "current_departure": current_departure,
                     "track": track,
                     "message": message,
                     "train_station": matches[0][3],
@@ -194,7 +215,6 @@ def fetch_station_df(station_name: str) -> pd.DataFrame:
     except Exception as e:
         print("[fetch_station_df] ERROR:", e)
         return pd.DataFrame({"error": [str(e)]})
-
 # ======================= UI =======================
 def empty_fig(title: str, message: str = "No data for selected filters") -> go.Figure:
     fig = go.Figure()
