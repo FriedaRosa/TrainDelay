@@ -66,7 +66,7 @@ def fetch_station_df(station_name: str) -> pd.DataFrame:
         trains = th.get_timetable_changes(timetable)
 
         rows = []
-        request_time = datetime.datetime.now()
+        request_time = pd.Timestamp.now().strftime('%H:%M:%S')
         for t in trains:
             line = f"{t.train_type}{getattr(t, 'train_line', '')}"
             train_id = t.train_number

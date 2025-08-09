@@ -1,0 +1,15 @@
+request_time,line,last_station,line_last,train_id,first_station,planned_departure,current_departure,track,message,train_station,is_delayed,delayed_minutes
+2025-08-09 17:37:18,RE50,Dresden Hbf,RE50 Dresden Hbf,16527,Leipzig-Engelsdorf,2025-08-09 17:00:00,2025-08-09 17:01:00,21,keine Verspätungsbegründung,Leipzig Hbf,1,1
+2025-08-09 17:37:18,RE13,Magdeburg Hbf,RE13 Magdeburg Hbf,16124,Leipzig Messe,2025-08-09 17:04:00,2025-08-09 17:04:00,10,keine Verspätungsbegründung,Leipzig Hbf,0,0
+2025-08-09 17:37:18,RB110,Grimma ob Bf,RB110 Grimma ob Bf,27742,Leipzig-Sellerhausen,2025-08-09 17:06:00,2025-08-09 17:07:00,20,keine Verspätungsbegründung,Leipzig Hbf,1,1
+2025-08-09 17:37:18,RE10,Frankfurt(Oder),RE10 Frankfurt(Oder),18392,Taucha(Leipzig),2025-08-09 17:12:00,2025-08-09 17:12:00,9,No message,Leipzig Hbf,0,0
+2025-08-09 17:37:18,RE11,Hoyerswerda,RE11 Hoyerswerda,18192,Taucha(Leipzig),2025-08-09 17:12:00,2025-08-09 17:12:00,9,No message,Leipzig Hbf,0,0
+2025-08-09 17:37:18,RB20,Eisenach Hbf,RB20 Eisenach Hbf,74628,Leipzig-Möckern,2025-08-09 17:19:00,2025-08-09 17:27:00,7,Verspätung aus vorheriger Fahrt,Leipzig Hbf,1,8
+2025-08-09 17:37:18,RE6,Chemnitz Hbf,RE6 Chemnitz Hbf,74184,Bad Lausick,2025-08-09 17:21:00,2025-08-09 17:22:00,23,keine Verspätungsbegründung,Leipzig Hbf,1,1
+2025-08-09 17:37:18,IC,Dresden Hbf,IC Dresden Hbf,2049,Karlsruhe Hbf,2025-08-09 17:31:00,2025-08-09 17:31:00,15,keine Verspätungsbegründung Verspätung eines vorausfahrenden Zuges keine Verspätungsbegründung Verspätung eines vorausfahrenden Zuges,Leipzig Hbf,0,0
+2025-08-09 17:37:18,ICE,Frankfurt(Main)Hbf,ICE Frankfurt(Main)Hbf,2986,Dresden Hbf,2025-08-09 17:33:00,2025-08-09 17:33:00,,No message,Leipzig Hbf,0,0
+2025-08-09 17:37:18,RB113,Geithain,RB113 Geithain,16687,Leipzig-Paunsdorf,2025-08-09 17:33:00,2025-08-09 17:33:00,21,No message,Leipzig Hbf,0,0
+2025-08-09 17:37:18,IC,Oldenburg(Oldb)Hbf,IC Oldenburg(Oldb)Hbf,2032,Halle(Saale)Hbf,2025-08-09 17:40:00,2025-08-09 17:40:00,16,No message,Leipzig Hbf,0,0
+2025-08-09 17:37:18,ICE,München Hbf,ICE München Hbf,603,Hamburg-Altona,2025-08-09 17:48:00,2025-08-09 17:52:00,11,keine Verspätungsbegründung keine Verspätungsbegründung keine Verspätungsbegründung technische Störung am Zug keine Verspätungsbegründung keine Verspätungsbegründung keine Verspätungsbegründung keine Verspätungsbegründung technische Störung am Zug keine Verspätungsbegründung,Leipzig Hbf,1,4
+2025-08-09 17:37:18,RB13,Hof Hbf,RB13 Hof Hbf,81023,Leipzig-Plagwitz,2025-08-09 17:53:00,2025-08-09 17:53:00,8,No message,Leipzig Hbf,0,0
+2025-08-09 17:37:18,RB22,Saalfeld(Saale),RB22 Saalfeld(Saale),80861,Leipzig-Plagwitz,2025-08-09 17:53:00,2025-08-09 17:53:00,8,keine Verspätungsbegründung keine Verspätungsbegründung keine Verspätungsbegründung keine Verspätungsbegründung,Leipzig Hbf,0,0
