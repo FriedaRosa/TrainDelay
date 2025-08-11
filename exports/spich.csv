@@ -1,0 +1,24 @@
+request_time,line,last_station,line_last,train_id,first_station,planned_departure,current_departure,track,message,train_station,is_delayed,delayed_minutes
+2025-08-09 19:14:58.274569+02:00,S19,Hennef(Sieg),S19 Hennef(Sieg),32018,Sindorf,2025-08-09 19:04:00+02:00,2025-08-09 19:07:00+02:00,2,No message,Spich,1,3
+2025-08-09 19:14:58.274569+02:00,S12,Köln-Ehrenfeld,S12 Köln-Ehrenfeld,33253,Au(Sieg),2025-08-09 19:06:00+02:00,2025-08-09 19:12:00+02:00,1,No message,Spich,1,6
+2025-08-09 19:14:58.274569+02:00,S12,Troisdorf,S12 Troisdorf,33244,Köln-Ehrenfeld,2025-08-09 19:10:00+02:00,2025-08-09 19:13:00+02:00,2,No message,Spich,1,3
+2025-08-09 19:14:58.274569+02:00,S19,Sindorf,S19 Sindorf,32027,Hennef(Sieg),2025-08-09 19:15:00+02:00,2025-08-09 19:15:00+02:00,1,Verspätung eines vorausfahrenden Zuges Verspätung eines vorausfahrenden Zuges Verspätung eines vorausfahrenden Zuges Verspätung eines vorausfahrenden Zuges,Spich,0,0
+2025-08-09 19:14:58.274569+02:00,S19,Au(Sieg),S19 Au(Sieg),32020,Düren,2025-08-09 19:24:00+02:00,2025-08-09 19:30:00+02:00,2,No message,Spich,1,6
+2025-08-09 19:14:58.274569+02:00,S12,Köln-Ehrenfeld,S12 Köln-Ehrenfeld,33295,Hennef(Sieg),2025-08-09 19:26:00+02:00,2025-08-09 19:26:00+02:00,1,No message,Spich,0,0
+2025-08-09 19:14:58.274569+02:00,S12,Hennef(Sieg),S12 Hennef(Sieg),33250,Köln-Ehrenfeld,2025-08-09 19:30:00+02:00,2025-08-09 19:37:00+02:00,2,No message,Spich,1,7
+2025-08-09 19:14:58.274569+02:00,S19,Düren,S19 Düren,32029,Au(Sieg),2025-08-09 19:35:00+02:00,2025-08-09 19:35:00+02:00,1,No message,Spich,0,0
+2025-08-09 19:14:58.274569+02:00,S19,Hennef(Sieg),S19 Hennef(Sieg),32024,Düren,2025-08-09 19:44:00+02:00,2025-08-09 19:44:00+02:00,2,No message,Spich,0,0
+2025-08-09 19:14:58.274569+02:00,S12,Köln-Ehrenfeld,S12 Köln-Ehrenfeld,33297,Troisdorf,2025-08-09 19:46:00+02:00,2025-08-09 19:46:00+02:00,1,No message,Spich,0,0
+2025-08-09 19:14:58.274569+02:00,S12,Au(Sieg),S12 Au(Sieg),33252,Köln-Ehrenfeld,2025-08-09 19:50:00+02:00,2025-08-09 19:51:00+02:00,2,No message,Spich,1,1
+2025-08-09 19:14:58.274569+02:00,S19,Düren,S19 Düren,32033,Hennef(Sieg),2025-08-09 19:55:00+02:00,2025-08-09 19:55:00+02:00,1,No message,Spich,0,0
+2025-08-09 20:00:34.435630+02:00,S19,Hennef(Sieg),S19 Hennef(Sieg),32026,Troisdorf,2025-08-09 20:04:00+02:00,2025-08-09 20:04:00+02:00,2,technische Störung am Zug technische Störung am Zug technische Störung am Zug technische Störung am Zug,Spich,0,0
+2025-08-09 20:00:34.435630+02:00,S12,Köln-Müngersdorf Technologiepark,S12 Köln-Müngersdorf Technologiepark,33261,Porz-Wahn,2025-08-09 20:06:00+02:00,2025-08-09 20:06:00+02:00,1,No message,Spich,0,0
+2025-08-09 20:00:34.435630+02:00,S12,Troisdorf,S12 Troisdorf,33256,Troisdorf,2025-08-09 20:10:00+02:00,2025-08-09 20:17:00+02:00,2,No message,Spich,1,7
+2025-08-09 20:00:34.435630+02:00,S19,Düren,S19 Düren,32035,Porz-Wahn,2025-08-09 20:15:00+02:00,2025-08-09 20:15:00+02:00,1,No message,Spich,0,0
+2025-08-09 20:00:34.435630+02:00,S19,Au(Sieg),S19 Au(Sieg),32028,Troisdorf,2025-08-09 20:24:00+02:00,2025-08-09 20:26:00+02:00,2,No message,Spich,1,2
+2025-08-09 20:00:34.435630+02:00,S12,Köln Hbf,S12 Köln Hbf,33263,Porz-Wahn,2025-08-09 20:26:00+02:00,2025-08-09 20:26:00+02:00,1,No message,Spich,0,0
+2025-08-09 20:00:34.435630+02:00,S12,Blankenberg(Sieg),S12 Blankenberg(Sieg),33260,Troisdorf,2025-08-09 20:30:00+02:00,2025-08-09 20:33:00+02:00,2,No message,Spich,1,3
+2025-08-09 20:00:34.435630+02:00,S19,Sindorf,S19 Sindorf,32039,Porz-Wahn,2025-08-09 20:35:00+02:00,2025-08-09 20:35:00+02:00,1,ärztliche Versorgung eines Fahrgastes ärztliche Versorgung eines Fahrgastes,Spich,0,0
+2025-08-09 20:00:34.435630+02:00,S19,Hennef(Sieg),S19 Hennef(Sieg),32032,Troisdorf,2025-08-09 20:44:00+02:00,2025-08-09 20:55:00+02:00,2,No message,Spich,1,11
+2025-08-09 20:00:34.435630+02:00,S12,Au(Sieg),S12 Au(Sieg),33262,Troisdorf,2025-08-09 20:50:00+02:00,2025-08-09 20:50:00+02:00,2,No message,Spich,0,0
+2025-08-09 20:00:34.435630+02:00,S19,Köln Hbf,S19 Köln Hbf,32043,Porz-Wahn,2025-08-09 20:55:00+02:00,,1,technische Störung am Zug technische Störung am Zug,Spich,0,0

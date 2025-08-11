@@ -1,24 +1,19 @@
 # TrainDelay
 > There is a suspicious number of daily train delays between Köln Hbf and Spich.
 
-This repo is for a shiny app showing Deutsche Bahn train delays for Köln Hbf and Spich. 
+This repo is for a shiny app to retrieve Deutsche Bahn delays for any station in Germany, filter by line, and directly _*visualise*_ the delays over time. 
+The app creates visualisations about which trains win the prize of the most delayed train at a certain station, visualises how overall delayed trains are at a specific station and enables downloading of the data to create an archive.
 
-Available from browser here: https://friedarosa-traindelay.share.connect.posit.cloud/
-<img width="1033" height="400" alt="image" src="https://github.com/user-attachments/assets/0b2df2bd-6a4a-4572-b320-3fc1b65fe373" />
+Available from browser here: https://friedarosa-traindelay120.share.connect.posit.cloud/
 
-<img width="1033" height="400" alt="image" src="https://github.com/user-attachments/assets/bc0feec9-f809-4bc5-989d-c7e44c3f278e" />
-
-<img width="1033" height="400" alt="image" src="https://github.com/user-attachments/assets/b6c3edaf-db3b-4369-b2af-377ad36eb7ee" />
-
-<img width="507" height="853" alt="image" src="https://github.com/user-attachments/assets/2cb04443-810f-44df-ab0b-5002b117ba7c" />
-
+<img width="3798" height="2056" alt="image" src="https://github.com/user-attachments/assets/02faad8b-9d60-44e0-b6f3-1ef0f15ee262" />
 
 
 
 ## References
-https://github.com/Tutorialwork/deutsche_bahn_api
+https://github.com/Tutorialwork/deutsche_bahn_api (modified)
 
-https://github.com/MichaelMrt/TrainDelay
+https://github.com/MichaelMrt/TrainDelay (modified)
 
 Data derived from Timetable API (https://developers.deutschebahn.com/db-api-marketplace/apis/).
 
