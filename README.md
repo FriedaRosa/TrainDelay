@@ -6,6 +6,7 @@ The app creates visualisations about which trains win the prize of the most dela
 
 Available from browser here: https://friedarosa-traindelay120.share.connect.posit.cloud/
 
+<img width="3798" height="2056" alt="image" src="https://github.com/user-attachments/assets/02faad8b-9d60-44e0-b6f3-1ef0f15ee262" />
 
 
 
