@@ -1,7 +1,7 @@
 # TrainDelay
 > There is a suspicious number of daily train delays between Köln Hbf and Spich.
 
-This repo is for a shiny app to retrieve Deutsche Bahn delays for any station in Germany, filter by line, or just visualise the delays over time. 
+This repo is for a shiny app to retrieve Deutsche Bahn delays for any station in Germany, filter by line, and directly _*visualise*_ the delays over time. 
 The app creates visualisations about which trains win the prize of the most delayed train at a certain station, visualises how overall delayed trains are at a specific station and enables downloading of the data to create an archive.
 
 Available from browser here: https://friedarosa-traindelay120.share.connect.posit.cloud/
